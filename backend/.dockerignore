@@ -1,0 +1,21 @@
+# Ignore les fichiers de dépendances
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Ignore les fichiers d'environnement
+.env
+
+# Ignore les fichiers du contrôle de version
+.git
+.gitignore
+
+# Ignore les dossiers ou fichiers temporaires
+*.log
+*.bak
+*.swp
+
+# Ignore les dossiers ou fichiers de cache
+.cache
+.DS_Store

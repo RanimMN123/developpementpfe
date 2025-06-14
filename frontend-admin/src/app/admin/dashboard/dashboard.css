@@ -1,0 +1,532 @@
+/* Animations personnalisées pour le dashboard */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+/* Classes utilitaires */
+.animate-slide-in-up {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s ease-out;
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1.5s ease-out;
+}
+
+/* Effets de hover améliorés */
+.stat-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.quick-action-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quick-action-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
+}
+
+/* Gradients personnalisés */
+.gradient-blue {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-green {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.gradient-purple {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.gradient-orange {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* Effets de particules */
+.particles::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 200, 255, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Responsive animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-in-up,
+  .animate-fade-in-scale,
+  .animate-shimmer,
+  .animate-pulse-glow,
+  .animate-bounce-in,
+  .animate-progress-fill {
+    animation: none;
+  }
+  
+  .stat-card:hover,
+  .quick-action-card:hover {
+    transform: none;
+  }
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Chart animations */
+.chart-bar {
+  transition: all 0.3s ease;
+  transform-origin: bottom;
+}
+
+.chart-bar:hover {
+  transform: scaleY(1.1);
+  filter: brightness(1.1);
+}
+
+/* Notification badge */
+.notification-badge {
+  animation: bounce-in 0.5s ease-out;
+}
+
+/* Progress ring */
+@keyframes progress-ring {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+}
+
+.progress-ring {
+  animation: progress-ring 2s ease-out;
+}
+
+/* Animations staggered pour les grilles */
+.grid-item-1 {
+  animation: fadeInScale 0.6s ease-out;
+  animation-delay: 0ms;
+  animation-fill-mode: both;
+}
+.grid-item-2 {
+  animation: fadeInScale 0.6s ease-out;
+  animation-delay: 100ms;
+  animation-fill-mode: both;
+}
+.grid-item-3 {
+  animation: fadeInScale 0.6s ease-out;
+  animation-delay: 200ms;
+  animation-fill-mode: both;
+}
+.grid-item-4 {
+  animation: fadeInScale 0.6s ease-out;
+  animation-delay: 300ms;
+  animation-fill-mode: both;
+}
+.grid-item-5 {
+  animation: slideInUp 0.6s ease-out;
+  animation-delay: 400ms;
+  animation-fill-mode: both;
+}
+.grid-item-6 {
+  animation: slideInUp 0.6s ease-out;
+  animation-delay: 500ms;
+  animation-fill-mode: both;
+}
+.grid-item-7 {
+  animation: slideInUp 0.6s ease-out;
+  animation-delay: 600ms;
+  animation-fill-mode: both;
+}
+.grid-item-8 {
+  animation: slideInUp 0.6s ease-out;
+  animation-delay: 700ms;
+  animation-fill-mode: both;
+}
+
+/* Nouvelles animations pour les graphiques */
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out;
+  animation-delay: 300ms;
+  animation-fill-mode: both;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out;
+  animation-delay: 300ms;
+  animation-fill-mode: both;
+}
+
+/* Optimisations pour les cartes compactes */
+.stat-card {
+  min-height: 140px;
+}
+
+.quick-action-card {
+  min-height: 120px;
+}
+
+.chart-container {
+  min-height: 300px;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.chart-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Alignement symétrique des graphiques */
+.chart-grid-symmetric {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.chart-item-symmetric {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-item-symmetric .chart-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-item-symmetric .stat-card-chart {
+  flex: 1;
+  min-height: 480px;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 1023px) {
+  .chart-grid-symmetric {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .chart-item-symmetric {
+    min-height: auto;
+  }
+
+  .chart-item-symmetric .stat-card-chart {
+    min-height: 400px;
+  }
+}
+
+/* Animations pour les graphiques internes */
+@keyframes chart-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes card-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes number-count-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes icon-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes soft-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Classes d'animation pour les graphiques */
+.chart-animate-in {
+  animation: chart-fade-in 0.8s ease-out;
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+.card-animate-in {
+  animation: card-slide-up 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.card-animate-in:nth-child(1) { animation-delay: 0.1s; }
+.card-animate-in:nth-child(2) { animation-delay: 0.2s; }
+.card-animate-in:nth-child(3) { animation-delay: 0.3s; }
+.card-animate-in:nth-child(4) { animation-delay: 0.4s; }
+
+.number-animate {
+  animation: number-count-up 0.8s ease-out;
+  animation-fill-mode: both;
+}
+
+.icon-animate {
+  animation: icon-bounce 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.gradient-animate {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Effet de glow subtil pour les icônes */
+.icon-glow {
+  animation: soft-glow 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.icon-glow:hover {
+  animation-duration: 1.5s;
+  transform: scale(1.05);
+}
+
+/* Animations de hover améliorées pour les cartes */
+.info-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.info-card:hover::before {
+  left: 100%;
+}
+
+.info-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.info-card:hover .icon-animate {
+  animation: icon-bounce 0.6s ease-out;
+}
+
+/* Animations pour les boutons de contrôle */
+.control-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.control-button:hover::after {
+  width: 100px;
+  height: 100px;
+}
+
+.control-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation pour les graphiques Recharts */
+.recharts-wrapper {
+  animation: chart-fade-in 1s ease-out;
+  animation-delay: 0.5s;
+  animation-fill-mode: both;
+}
+
+/* Stagger animation pour les éléments de grille */
+.stagger-item {
+  animation: card-slide-up 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: newcontainer
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Azerty123*
+      POSTGRES_DB: adminapp
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - my-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: greenarrow-backend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:Azerty123*@postgres:5432/adminapp?schema=public"
+    volumes:
+      - ./backend:/app
+    command: npm run start:dev
+    networks:
+      - my-network
+
+volumes:
+  postgres-data:
+
+networks:
+  my-network:
+    driver: bridge

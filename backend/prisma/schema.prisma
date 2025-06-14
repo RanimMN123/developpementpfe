@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================
+// ENUMS
+// ===================
+
+enum OrderStatus {
+  PENDING     // En attente - commande créée mais pas encore validée
+  CONFIRMED   // Confirmée - commande validée par l'admin
+  PROCESSING  // En cours de traitement - préparation en cours
+  READY       // Prête - commande préparée, prête pour livraison
+  SHIPPED     // Expédiée - commande en cours de livraison
+  DELIVERED   // Livrée - commande livrée au client
+  CANCELLED   // Annulée - commande annulée
+  RETURNED    // Retournée - commande retournée par le client
+}
+
+enum DeliveryStatus {
+  PRETE                // Prête - commande prête pour la livraison
+  EN_COURS_DE_LIVRAISON // En cours de livraison - livraison en cours
+  LIVREE               // Livrée - livraison terminée avec succès
+  REPORTEE             // Reportée - livraison reportée à une autre date
+  ANNULEE              // Annulée - livraison annulée
+}
+
+enum PaymentMethod {
+  ESPECE       // Paiement en espèces
+  CHEQUE       // Paiement par chèque
+  CREDIT       // Paiement à crédit
+  TICKET_RESTO // Ticket restaurant
+  CARTE        // Paiement par carte
+}
+
+// ===================
+// MODELS PRINCIPAUX
+// ===================
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String?
+  telephone String?  // Numéro de téléphone optionnel
+  adresse   String?  // Adresse optionnelle
+  role      String?  // Rôle de l'utilisateur (Agent Commercial, Manager, etc.)
+
+  clients      Client[]      // Relation vers les clients associés à cet utilisateur
+  caisseVentes CaisseVente[] // Relation vers les ventes en caisse
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  image    String?   // URL de l'image (optionnelle)
+  products Product[] // Un produit appartient à une catégorie
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  stock       Int      @default(0) // Stock initial
+  imageUrl    String?  // ✅ Ajouté ici
+  createdAt   DateTime @default(now())
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  orderItems OrderItem[] // Un produit peut apparaître dans plusieurs commandes
+
+}
+
+model Client {
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String   // <-- Changement ici
+  phoneNumber String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId Int // Relation obligatoire avec un utilisateur
+  user   User @relation(fields: [userId], references: [id])
+
+  orders            Order[]            // Un client peut avoir plusieurs commandes
+  deliveryPlannings DeliveryPlanning[] // Un client peut avoir plusieurs planifications
+}
+
+model Fournisseur {
+  id        Int      @id @default(autoincrement())
+  nom       String   // Nom du fournisseur
+  adresse   String   // Adresse du fournisseur
+  numero    String   // Numéro de téléphone
+  mail      String   @unique // Email unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model Order {
+  id           Int         @id @default(autoincrement())
+  clientId     Int
+  clientName   String      // Nom du client
+  responsable  String      // Responsable de la commande
+  status       OrderStatus @default(PENDING) // Utilise l'enum OrderStatus
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  client           Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  items            OrderItem[]       // Un ordre contient plusieurs items
+  deliveryPlanning DeliveryPlanning? // Une commande peut avoir une planification de livraison
+  caisseVente      CaisseVente?      // Une commande peut avoir une vente en caisse (quand livrée)
+}
+
+model OrderItem {
+  id        Int @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model DeliveryPlanning {
+  id                Int            @id @default(autoincrement())
+  orderId           Int            @unique // Une commande ne peut avoir qu'une seule planification
+  clientId          Int
+  deliveryDate      DateTime
+  deliveryTimeStart String         // Format HH:MM (ex: "08:00")
+  deliveryTimeEnd   String         // Format HH:MM (ex: "18:00")
+  status            DeliveryStatus @default(PRETE) // Utilise l'enum DeliveryStatus
+  notes             String?        // Notes optionnelles
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+// ===================
+// SYSTÈME DE CAISSE
+// ===================
+
+model CaisseVente {
+  id              Int           @id @default(autoincrement())
+  orderId         Int           @unique // Référence à la commande livrée
+  userId          Int           // Utilisateur responsable de la vente
+  montant         Float         // Montant net (après réduction)
+  montantBrut     Float?        // Montant brut (avant réduction)
+  reduction       Float?        @default(0) // Montant de la réduction
+  methodePaiement PaymentMethod @default(ESPECE) // Méthode de paiement
+  dateVente       DateTime      @default(now()) // Date et heure de la vente
+  description     String?       // Description optionnelle
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("caisse_ventes") // Nom de table en base de données
+}

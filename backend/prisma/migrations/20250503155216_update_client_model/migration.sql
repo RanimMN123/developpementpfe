@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Client" ALTER COLUMN "updatedAt" DROP DEFAULT,
+ALTER COLUMN "userId" DROP DEFAULT;

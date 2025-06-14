@@ -1,0 +1,263 @@
+/* ========================================
+   SCROLLBAR PERSONNALISÉ ET AMÉLIORÉ - GLOBAL
+   ======================================== */
+
+/* Scrollbar pour Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+  border-radius: 10px;
+  border: 2px solid #f8fafc;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+  transform: scale(1.1);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.7);
+}
+
+::-webkit-scrollbar-corner {
+  background: #f8fafc;
+}
+
+/* Scrollbar horizontal */
+::-webkit-scrollbar:horizontal {
+  height: 12px;
+}
+
+/* Scrollbar pour les tableaux spécifiquement */
+.table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #64748b 0%, #475569 100%);
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #475569 0%, #334155 100%);
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(71, 85, 105, 0.4);
+}
+
+/* Scrollbar pour Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #f1f5f9;
+}
+
+.table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #f1f5f9;
+}
+
+/* Animation de scroll fluide */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Effet de scroll smooth pour les conteneurs */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Animation de scroll avec momentum sur mobile */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Scrollbar invisible mais fonctionnelle (pour certains cas) */
+.invisible-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.invisible-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Effet de fade sur les bords lors du scroll */
+.scroll-fade {
+  position: relative;
+}
+
+.scroll-fade::before,
+.scroll-fade::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-fade::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.scroll-fade::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* Bouton de retour en haut animé */
+.scroll-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+  z-index: 1000;
+  border: none;
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-5px) scale(1.1);
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.scroll-to-top:active {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Animation de pulsation pour attirer l'attention */
+@keyframes scroll-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.6), 0 0 0 10px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.scroll-to-top.pulse {
+  animation: scroll-pulse 2s infinite;
+}
+
+/* Scrollbar pour les cartes et conteneurs */
+.card-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.card-scroll::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.card-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.card-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+  transform: scale(1.1);
+}
+
+/* Scrollbar pour les modales */
+.modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 4px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.6);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+/* Responsive scrollbar */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .table-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scroll-to-top {
+    width: 45px;
+    height: 45px;
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+/* Support pour les utilisateurs qui préfèrent moins d'animations */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .scroll-to-top {
+    transition: opacity 0.2s ease !important;
+  }
+}

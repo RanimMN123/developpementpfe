@@ -1,0 +1,382 @@
+/* Optimisation des tailles pour la page Routes */
+
+/* Réduction des tailles de police */
+.routes-title {
+  font-size: 1.25rem !important; /* text-xl au lieu de text-2xl */
+  font-weight: 600;
+}
+
+.routes-description {
+  font-size: 0.875rem !important; /* text-sm au lieu de text-base */
+}
+
+.routes-section-title {
+  font-size: 1rem !important; /* text-base au lieu de text-lg */
+  font-weight: 500;
+}
+
+/* Optimisation des cartes de statistiques */
+.stats-card {
+  padding: 0.75rem !important; /* p-3 au lieu de p-4 */
+}
+
+.stats-card .icon {
+  height: 1.5rem !important; /* h-6 au lieu de h-8 */
+  width: 1.5rem !important; /* w-6 au lieu de w-8 */
+}
+
+.stats-card .label {
+  font-size: 0.75rem !important; /* text-xs au lieu de text-sm */
+  font-weight: 500;
+}
+
+.stats-card .value {
+  font-size: 1.25rem !important; /* text-xl au lieu de text-2xl */
+  font-weight: 600;
+}
+
+/* Optimisation des filtres */
+.filters-container {
+  padding: 1rem !important; /* p-4 au lieu de p-6 */
+}
+
+.filter-input {
+  padding: 0.5rem 0.75rem !important; /* py-2 px-3 au lieu de py-3 px-4 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem !important; /* py-2 px-3 au lieu de py-3 px-4 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+.filter-button {
+  padding: 0.5rem 0.75rem !important; /* py-2 px-3 au lieu de py-3 px-4 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+/* Optimisation du tableau */
+.routes-table {
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+.routes-table th {
+  padding: 0.75rem 1rem !important; /* py-3 px-4 au lieu de py-4 px-6 */
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 500;
+}
+
+.routes-table td {
+  padding: 0.75rem 1rem !important; /* py-3 px-4 au lieu de py-4 px-6 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+.routes-table .order-id {
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 600;
+}
+
+.routes-table .client-name {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 500;
+}
+
+.routes-table .user-name {
+  font-size: 0.75rem !important; /* text-xs */
+}
+
+.routes-table .address {
+  font-size: 0.75rem !important; /* text-xs */
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Optimisation des badges de statut */
+.status-badge {
+  padding: 0.25rem 0.5rem !important; /* py-1 px-2 au lieu de py-1.5 px-3 */
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 500;
+}
+
+/* Optimisation des boutons d'action */
+.action-button {
+  padding: 0.375rem !important; /* p-1.5 au lieu de p-2 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+.action-button svg {
+  height: 1rem !important; /* h-4 au lieu de h-5 */
+  width: 1rem !important; /* w-4 au lieu de w-5 */
+}
+
+/* Optimisation du modal */
+.modal-title {
+  font-size: 1.125rem !important; /* text-lg au lieu de text-xl */
+  font-weight: 600;
+}
+
+.modal-content {
+  padding: 1rem !important; /* p-4 au lieu de p-6 */
+}
+
+.modal-label {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 500;
+}
+
+.modal-input {
+  padding: 0.5rem 0.75rem !important; /* py-2 px-3 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+.modal-button {
+  padding: 0.5rem 1rem !important; /* py-2 px-4 */
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+/* Optimisation responsive */
+@media (max-width: 768px) {
+  .routes-title {
+    font-size: 1.125rem !important; /* text-lg */
+  }
+  
+  .stats-card {
+    padding: 0.5rem !important; /* p-2 */
+  }
+  
+  .stats-card .value {
+    font-size: 1.125rem !important; /* text-lg */
+  }
+  
+  .routes-table th,
+  .routes-table td {
+    padding: 0.5rem 0.75rem !important; /* py-2 px-3 */
+  }
+  
+  .routes-table {
+    font-size: 0.75rem !important; /* text-xs */
+  }
+  
+  .filters-container {
+    padding: 0.75rem !important; /* p-3 */
+  }
+}
+
+/* Animations optimisées - Identiques aux clients */
+.routes-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.routes-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Animation fade-in-up identique aux clients */
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optimisation des espacements */
+.routes-spacing {
+  gap: 1rem !important; /* space-y-4 au lieu de space-y-6 */
+}
+
+.routes-grid {
+  gap: 0.75rem !important; /* gap-3 au lieu de gap-4 */
+}
+
+/* Optimisation des icônes */
+.routes-icon-sm {
+  height: 1rem !important; /* h-4 */
+  width: 1rem !important; /* w-4 */
+}
+
+.routes-icon-md {
+  height: 1.25rem !important; /* h-5 */
+  width: 1.25rem !important; /* w-5 */
+}
+
+.routes-icon-lg {
+  height: 1.5rem !important; /* h-6 */
+  width: 1.5rem !important; /* w-6 */
+}
+
+/* Optimisation du header */
+.routes-header {
+  padding: 1rem 0 !important; /* py-4 au lieu de py-6 */
+}
+
+/* Optimisation des marges */
+.routes-compact {
+  margin: 0.5rem 0 !important; /* my-2 au lieu de my-4 */
+}
+
+/* Scrollbar identique aux clients */
+.table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #64748b 0%, #475569 100%);
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #475569 0%, #334155 100%);
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(71, 85, 105, 0.4);
+}
+
+.table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #f1f5f9;
+}
+
+/* Effet de scroll smooth pour les conteneurs */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Animation de scroll avec momentum sur mobile */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Effet de fade sur les bords lors du scroll */
+.scroll-fade {
+  position: relative;
+}
+
+.scroll-fade::before,
+.scroll-fade::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-fade::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.scroll-fade::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* Scrollbar optimisé pour les routes (backup) */
+.routes-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.routes-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.routes-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.routes-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Optimisation des textes */
+.routes-text-compact {
+  line-height: 1.4 !important;
+  letter-spacing: 0.01em;
+}
+
+/* Optimisation des bordures */
+.routes-border-thin {
+  border-width: 1px !important;
+}
+
+/* Optimisation des ombres */
+.routes-shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.routes-shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Optimisation des transitions */
+.routes-transition {
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Optimisation des hover effects */
+.routes-hover:hover {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Optimisation pour l'impression */
+@media print {
+  .routes-table {
+    font-size: 0.75rem !important;
+  }
+  
+  .stats-card {
+    break-inside: avoid;
+  }
+  
+  .action-button {
+    display: none !important;
+  }
+}

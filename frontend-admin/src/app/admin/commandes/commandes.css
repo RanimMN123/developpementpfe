@@ -1,0 +1,275 @@
+/* Animations pour la page des commandes */
+
+/* Animation d'apparition des lignes de commande */
+@keyframes order-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation d'expansion des détails */
+@keyframes expand-details {
+  0% {
+    opacity: 0;
+    max-height: 0;
+    transform: scaleY(0);
+  }
+  100% {
+    opacity: 1;
+    max-height: 500px;
+    transform: scaleY(1);
+  }
+}
+
+/* Animation de hover pour les lignes de commande */
+@keyframes order-hover {
+  0% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+  100% {
+    background-color: rgba(249, 250, 251, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Classes d'animation */
+.order-item {
+  animation: order-slide-in 0.5s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-item:nth-child(1) { animation-delay: 0.1s; }
+.order-item:nth-child(2) { animation-delay: 0.2s; }
+.order-item:nth-child(3) { animation-delay: 0.3s; }
+.order-item:nth-child(4) { animation-delay: 0.4s; }
+.order-item:nth-child(5) { animation-delay: 0.5s; }
+
+.order-item:hover {
+  animation: order-hover 0.2s ease-out forwards;
+  transform: translateY(-1px);
+}
+
+.order-details {
+  animation: expand-details 0.4s ease-out;
+  transform-origin: top;
+}
+
+/* Amélioration des tableaux */
+.order-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.order-table th {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.order-table td {
+  transition: background-color 0.2s ease;
+}
+
+.order-table tbody tr:hover td {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+/* Animation pour les badges de statut */
+.status-badge {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.status-badge:hover::before {
+  left: 100%;
+}
+
+/* Animation pour les boutons d'action */
+.action-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.action-button:hover::after {
+  width: 100px;
+  height: 100px;
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Amélioration du scroll */
+.table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animation pour les icônes */
+.icon-animate {
+  transition: transform 0.2s ease;
+}
+
+.icon-animate:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Responsive amélioré */
+@media (max-width: 768px) {
+  .order-item {
+    animation-delay: 0s !important;
+  }
+  
+  .order-table {
+    font-size: 0.75rem;
+  }
+  
+  .order-table th,
+  .order-table td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Animation de chargement pour les tableaux */
+@keyframes table-loading {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.table-loading {
+  animation: table-loading 1s ease-out;
+}
+
+/* Effet de focus amélioré */
+.focus-ring {
+  transition: all 0.2s ease;
+}
+
+.focus-ring:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #6366f1;
+  ring-offset: 2px;
+  border-color: #6366f1;
+}
+
+/* Animation pour les totaux */
+.total-animate {
+  animation: number-count-up 0.8s ease-out;
+}
+
+@keyframes number-count-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Amélioration des transitions */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animation pour les modals */
+.modal-backdrop {
+  animation: backdrop-fade-in 0.3s ease-out;
+}
+
+@keyframes backdrop-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  animation: modal-slide-up 0.3s ease-out;
+}
+
+@keyframes modal-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
