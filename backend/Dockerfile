@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Installer les dépendances système nécessaires
-RUN apk add --no-cache openssl
+RUN apk add --no-cache python3 make g++ openssl
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -41,5 +41,5 @@ ENV PORT=3000
 ENV HOST=0.0.0.0
 ENV DATABASE_URL="postgresql://postgres:password@host.docker.internal:5432/admin_db?schema=public"
 
-# Commande de démarrage - utiliser le bon chemin
-CMD ["node", "dist/src/main.js"]
+# Commande de démarrage - chemin correct
+CMD ["node", "dist/main.js"]
