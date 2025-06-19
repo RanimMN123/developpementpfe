@@ -134,9 +134,8 @@ const ClientModal: React.FC<{
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="flex-1 cursor-pointer" onClick={onClose}></div>
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-start justify-end z-50 pt-4 pr-4">
+      <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center justify-between">
@@ -278,7 +277,6 @@ const ClientModal: React.FC<{
           </PrimaryButton>
         </div>
       </div>
-      <div className="flex-1 cursor-pointer" onClick={onClose}></div>
     </div>
   );
 };
@@ -293,9 +291,9 @@ const DeleteConfirmModal: React.FC<{
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="flex-1 cursor-pointer" onClick={onClose}></div>
-      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">

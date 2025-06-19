@@ -5,36 +5,8 @@ import { Plus, Edit, Trash2, Loader2, X, ImageIcon, Upload } from 'lucide-react'
 import PageLayout, { PrimaryButton, ErrorState } from '../components/PageLayout';
 import SearchAndFilter from '../components/SearchAndFilter';
 import ScrollToTop from '../components/ScrollToTop';
-
-// Fonction utilitaire pour afficher des notifications toast
-const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
-  const notification = document.createElement('div');
-  const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-  const icon = type === 'success' ? '✅' : '❌';
-
-  notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 flex items-center space-x-2 max-w-md`;
-  notification.innerHTML = `
-    <span class="text-lg">${icon}</span>
-    <span class="font-medium">${message}</span>
-  `;
-
-  document.body.appendChild(notification);
-
-  // Animation d'entrée
-  setTimeout(() => {
-    notification.style.transform = 'translateX(0)';
-  }, 100);
-
-  // Supprimer la notification après 4 secondes
-  setTimeout(() => {
-    notification.style.transform = 'translateX(100%)';
-    setTimeout(() => {
-      if (document.body.contains(notification)) {
-        document.body.removeChild(notification);
-      }
-    }, 300);
-  }, 4000);
-};
+import SuccessNotification from '../../../components/SuccessNotification';
+import { SecureImage, buildImageUrl } from '../../../utils/imageUtils';
 
 // Définition des interfaces
 interface Category {
@@ -141,9 +113,6 @@ const AddCategoryModal: React.FC<ModalProps> = ({ isOpen, onClose, onCategoryAdd
       if (onCategoryAdded && result) {
         onCategoryAdded(result);
       }
-
-      // Afficher notification toast
-      showNotification(`Catégorie "${name.trim()}" ajoutée avec succès !`, 'success');
 
       // Close modal after 1s
       setTimeout(() => {
@@ -376,9 +345,6 @@ const EditCategoryModal: React.FC<ModalProps> = ({ isOpen, onClose, onCategoryUp
         onCategoryUpdated();
       }
 
-      // Afficher notification toast
-      showNotification(`Catégorie "${name.trim()}" modifiée avec succès !`, 'success');
-
       // Close modal after 1s
       setTimeout(() => {
         onClose();
@@ -599,9 +565,9 @@ const ConfirmDeleteModal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, 
           <div className="mb-4 text-center">
             {categoryImage && (
               <div className="relative inline-block mb-4">
-                <img
-                  src={`http://localhost:3000/${categoryImage}`}
-                  alt={categoryName}
+                <SecureImage
+                  src={categoryImage}
+                  alt={categoryName || 'Catégorie'}
                   className="mx-auto h-24 w-24 object-cover rounded-lg shadow-md"
                 />
                 <div className="absolute inset-0 bg-red-500 bg-opacity-20 rounded-lg flex items-center justify-center">
@@ -688,6 +654,10 @@ const CategoriesPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
+  // États pour les notifications de succès
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+
   const fetchCategories = async () => {
     setLoading(true);
     try {
@@ -727,14 +697,34 @@ const CategoriesPage = () => {
     };
   }, []);
 
-  const handleCategoryAdded = () => {
+  const handleCategoryAdded = (category: Category) => {
     fetchCategories();
     setShowAddModal(false);
+
+    // Afficher la notification de succès
+    setSuccessMessage({
+      title: 'Ajout réussi !',
+      message: `La catégorie "${category.name}" a été ajoutée avec succès.`
+    });
+    setShowSuccessNotification(true);
   };
 
   const handleEditClick = (category: Category) => {
     setSelectedCategory(category);
     setShowEditModal(true);
+  };
+
+  const handleCategoryUpdated = () => {
+    fetchCategories();
+    setShowEditModal(false);
+    setSelectedCategory(null);
+
+    // Afficher la notification de succès
+    setSuccessMessage({
+      title: 'Modification réussie !',
+      message: 'La catégorie a été modifiée avec succès.'
+    });
+    setShowSuccessNotification(true);
   };
 
   const handleDeleteClick = (category: Category) => {
@@ -762,9 +752,12 @@ const CategoriesPage = () => {
       // Recharger les catégories
       await fetchCategories();
 
-      // Afficher notification toast
-      setError(''); // Clear any previous errors
-      showNotification(`La catégorie "${categoryName}" a été supprimée avec succès !`, 'success');
+      // Afficher la notification de succès
+      setSuccessMessage({
+        title: 'Suppression réussie !',
+        message: `La catégorie "${categoryName}" a été supprimée avec succès.`
+      });
+      setShowSuccessNotification(true);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la suppression';
@@ -846,8 +839,8 @@ const CategoriesPage = () => {
                   <div key={category.id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 overflow-hidden group">
                     <div className="relative">
                       {category.image ? (
-                        <img
-                          src={`http://localhost:3000/${category.image}`}
+                        <SecureImage
+                          src={category.image}
                           alt={category.name}
                           className="h-32 w-full object-cover transition-transform duration-300 group-hover:scale-110"
                         />
@@ -908,8 +901,11 @@ const CategoriesPage = () => {
 
       <EditCategoryModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onCategoryUpdated={fetchCategories}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedCategory(null);
+        }}
+        onCategoryUpdated={handleCategoryUpdated}
         category={selectedCategory || undefined}
       />
 
@@ -919,6 +915,14 @@ const CategoriesPage = () => {
         onConfirm={handleDeleteConfirm}
         categoryName={categoryToDelete?.name || ''}
         categoryImage={categoryToDelete?.image}
+      />
+
+      {/* Notification de succès */}
+      <SuccessNotification
+        isOpen={showSuccessNotification}
+        onClose={() => setShowSuccessNotification(false)}
+        title={successMessage.title}
+        message={successMessage.message}
       />
 
       {/* Composant de scroll amélioré */}

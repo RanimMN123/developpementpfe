@@ -14,7 +14,6 @@ COPY tsconfig.json ./
 COPY next.config.ts ./
 COPY postcss.config.mjs ./
 COPY eslint.config.mjs ./
-COPY tailwind.config.js ./
 
 # Stage 2: Installation des dépendances
 FROM base AS deps

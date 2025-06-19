@@ -316,21 +316,14 @@ export default function CommandesPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+  // Affichage des dates comme elles viennent de la base
+  const formatDate = (dateString: any) => {
+    if (!dateString) return 'Date non disponible';
+    return String(dateString); // Convertir en string pour l'affichage
   };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatTime = (dateString: any) => {
+    if (!dateString) return 'Heure non disponible';
+    return String(dateString); // Convertir en string pour l'affichage
   };
 
   const formatCurrency = (amount: number) => {
@@ -514,8 +507,8 @@ export default function CommandesPage() {
 ═══════════════════════════════════════
 
 Ticket N°: ${ticketNumber}
-Date de création: ${formatDate(commande.createdAt)}
-Heure: ${formatTime(commande.createdAt)}
+Date de création: ${commande.createdAt}
+Heure: ${commande.createdAt}
 Commande N°: ${commande.id}
 Client N°: ${commande.clientId}
 Statut: ${getStatusText(commande.status)}
@@ -525,7 +518,7 @@ ${commande.deliveryPlanning ? `
             LIVRAISON PRÉVUE
 ───────────────────────────────────────
 
-Date de livraison: ${new Date(commande.deliveryPlanning.deliveryDate).toLocaleDateString('fr-FR')}
+Date de livraison: ${commande.deliveryPlanning.deliveryDate}
 Créneau horaire: ${commande.deliveryPlanning.deliveryTimeStart} - ${commande.deliveryPlanning.deliveryTimeEnd}
 Statut livraison: ${commande.deliveryPlanning.status}
 ${commande.deliveryPlanning.notes ? `Notes: ${commande.deliveryPlanning.notes}` : ''}
@@ -550,7 +543,7 @@ TOTAL: ${formatCurrency(total)}
 ═══════════════════════════════════════
         Merci pour votre achat !
 
-Ticket généré le: ${new Date().toLocaleString('fr-FR')}
+Ticket généré le: ${new Date().toLocaleDateString('fr-FR')}
 Conservez ce ticket pour tout échange
 ═══════════════════════════════════════
     `;
@@ -1194,8 +1187,8 @@ Conservez ce ticket pour tout échange
                       <h3 className="font-bold text-lg mb-3 border-b border-gray-400">COMMANDE</h3>
                       <div className="space-y-1">
                         <div><strong>N° Commande:</strong> #{selectedOrderForTicket.id}</div>
-                        <div><strong>Date:</strong> {formatDate(selectedOrderForTicket.createdAt)}</div>
-                        <div><strong>Heure:</strong> {formatTime(selectedOrderForTicket.createdAt)}</div>
+                        <div><strong>Date:</strong> {selectedOrderForTicket.createdAt}</div>
+                        <div><strong>Heure:</strong> {selectedOrderForTicket.createdAt}</div>
                         <div><strong>Statut:</strong> {getStatusText(selectedOrderForTicket.status)}</div>
                       </div>
                     </div>
@@ -1214,7 +1207,7 @@ Conservez ce ticket pour tout échange
                       <div>
                         <h3 className="font-bold text-lg mb-3 border-b border-gray-400">LIVRAISON PRÉVUE</h3>
                         <div className="space-y-1">
-                          <div><strong>Date:</strong> {new Date(selectedOrderForTicket.deliveryPlanning.deliveryDate).toLocaleDateString('fr-FR')}</div>
+                          <div><strong>Date:</strong> {selectedOrderForTicket.deliveryPlanning.deliveryDate}</div>
                           <div><strong>Créneau:</strong> {selectedOrderForTicket.deliveryPlanning.deliveryTimeStart} - {selectedOrderForTicket.deliveryPlanning.deliveryTimeEnd}</div>
                           <div><strong>Statut livraison:</strong> {selectedOrderForTicket.deliveryPlanning.status}</div>
                         </div>
@@ -1273,7 +1266,7 @@ Conservez ce ticket pour tout échange
                   <div className="text-center mt-8 pt-4 border-t border-gray-400">
                     <div className="text-lg font-bold mb-2">MERCI POUR VOTRE ACHAT !</div>
                     <div className="text-sm text-gray-600">
-                      <div>Ticket généré le {new Date().toLocaleString('fr-FR')}</div>
+                      <div>Ticket généré le {new Date().toLocaleDateString('fr-FR')}</div>
                       <div className="mt-2">Conservez ce ticket pour tout échange ou réclamation</div>
                     </div>
                   </div>

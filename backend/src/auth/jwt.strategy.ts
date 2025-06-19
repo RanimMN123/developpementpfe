@@ -15,7 +15,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // Cette méthode va être appelée lors de la validation du JWT
   async validate(payload: any) {
-    
-    return { sub: payload.sub, email: payload.email }; // 'sub' est généralement l'ID de l'utilisateur 
+    // Retourner l'utilisateur avec l'ID correct pour les contrôleurs
+    return {
+      id: payload.sub || payload.userId, // Utiliser sub ou userId comme ID
+      sub: payload.sub,
+      email: payload.email,
+      userId: payload.sub || payload.userId // Compatibilité
+    };
   }
 }

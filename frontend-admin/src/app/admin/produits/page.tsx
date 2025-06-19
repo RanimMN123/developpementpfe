@@ -6,6 +6,7 @@ import PageLayout, { PrimaryButton, ErrorState } from '../components/PageLayout'
 import SuccessNotification from '../../../components/SuccessNotification';
 import SearchAndFilter from '../components/SearchAndFilter';
 import ScrollToTop from '../components/ScrollToTop';
+import { SecureImage, buildImageUrl } from '../../../utils/imageUtils';
 import './animations.css';
 
 
@@ -338,7 +339,7 @@ const AjouterProduitModal: React.FC<AjouterProduitModalProps> = ({ isOpen, onClo
                 <div className="space-y-1 text-center">
                   {imagePreview ? (
                     <div className="relative">
-                      <img
+                      <SecureImage
                         src={imagePreview}
                         alt="Aperçu"
                         className="mx-auto h-16 w-16 object-cover rounded-lg"
@@ -883,21 +884,16 @@ const AdminProduits = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {produit.imageUrl ? (
-                          <img
-                            className="h-10 w-10 rounded-lg object-cover transition-all duration-300 hover:scale-110 hover:shadow-lg hover:rotate-2"
+                          <SecureImage
                             src={produit.imageUrl}
                             alt={produit.name}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                              ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
-                            }}
+                            className="h-10 w-10 rounded-lg object-cover transition-all duration-300 hover:scale-110 hover:shadow-lg hover:rotate-2"
                           />
-                        ) : null}
-                        <div
-                          className={`h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center transition-all duration-300 hover:bg-gray-300 hover:scale-110 ${produit.imageUrl ? 'hidden' : 'flex'}`}
-                        >
-                          <ImageIcon className="h-5 w-5 text-gray-400 transition-colors duration-300" />
-                        </div>
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center transition-all duration-300 hover:bg-gray-300 hover:scale-110">
+                            <ImageIcon className="h-5 w-5 text-gray-400 transition-colors duration-300" />
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

@@ -55,7 +55,7 @@ export class ProductController {
       throw new BadRequestException('Les champs doivent être correctement remplis.');
     }
   
-    const imageUrl = file ? `http://localhost:3000/public/images/${file.filename}` : null;
+    const imageUrl = file ? `/public/images/${file.filename}` : null;
   
     return this.productService.create(name, description, price, stock, categoryId, imageUrl ?? undefined);
 
@@ -126,7 +126,7 @@ export class ProductController {
     const stock = body.stock ? Number(body.stock) : undefined;
     const categoryId = body.categoryId ? Number(body.categoryId) : undefined;
   
-    const imageUrl = file ? `http://localhost:3000/public/images/${file.filename}` : undefined;
+    const imageUrl = file ? `/public/images/${file.filename}` : undefined;
   
     const updateData: any = {
       ...(name && { name }),

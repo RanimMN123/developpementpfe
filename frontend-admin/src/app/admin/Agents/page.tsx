@@ -17,10 +17,11 @@ import {
 } from 'lucide-react';
 import PageLayout from '../components/PageLayout';
 import SuccessNotification from '../../../components/SuccessNotification';
-import ConfirmDialog from '../../../components/ConfirmDialog';
+
 import AgentModal from './components/AgentModal';
 import ScrollToTop from '../components/ScrollToTop';
 import { Agent } from '../../../types/agent';
+import { apiUtils } from '../../../utils/apiUtils';
 
 
 
@@ -77,6 +78,7 @@ const AgentsPage = () => {
       }
 
       const usersData = await usersResponse.json();
+      console.log('📊 Données users récupérées:', usersData.length, 'utilisateurs');
 
       // Transformer les users en agents et calculer leurs statistiques
       const agentsWithStats = await Promise.all(
@@ -141,8 +143,9 @@ const AgentsPage = () => {
       );
 
       setAgents(agentsWithStats);
+      console.log('✅ Liste des agents mise à jour:', agentsWithStats.length, 'agents');
     } catch (err) {
-      console.error('Erreur:', err);
+      console.error('❌ Erreur lors du chargement des agents:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des agents');
       setAgents([]); // Pas de données de démonstration
     } finally {
@@ -152,91 +155,52 @@ const AgentsPage = () => {
 
 
 
-  // Fonction pour supprimer un agent
-  const handleDeleteAgent = async () => {
-    if (!currentAgent) return;
-
-    try {
-      setIsDeleting(true);
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`http://localhost:3000/api/admin/agents/${currentAgent.id}`, {
-        method: 'DELETE',
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la suppression de l\'agent');
-      }
-
-      await fetchAgents();
-      setShowDeleteModal(false);
-      setCurrentAgent(null);
-
-      // Afficher la notification de succès
-      setSuccessMessage({
-        title: 'Suppression réussie !',
-        message: 'L\'agent a été supprimé avec succès.'
-      });
-      setShowSuccessNotification(true);
-    } catch (err) {
-      console.error('Erreur:', err);
-      setError(err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'agent');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  // Fonction de suppression supprimée - seule la visualisation est conservée
 
   // Fonction pour ajouter un agent
   const handleAddAgent = async (agentData: Omit<Agent, 'id'>) => {
     try {
       setIsSaving(true);
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
 
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      // Préparer les données avec valeurs par défaut
+      // Préparer les données selon le SecureCreateUserDto avec validation
       const dataToSend = {
         name: `${agentData.prenom} ${agentData.nom}`,
         email: agentData.email,
         password: agentData.password,
-        telephone: agentData.telephone || '',
-        adresse: agentData.adresse || '',
-        role: agentData.role,
-        statut: agentData.statut || 'actif',
-        dateCreation: agentData.dateCreation || new Date().toISOString()
+        telephone: agentData.telephone || undefined, // undefined au lieu de chaîne vide
+        adresse: agentData.adresse || undefined,     // undefined au lieu de chaîne vide
+        role: agentData.role
       };
 
-      const response = await fetch('http://localhost:3000/users', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(dataToSend),
-      });
+      console.log('📤 Données envoyées au backend:', dataToSend);
+      console.log('📤 Rôle spécifique:', dataToSend.role);
+      console.log('📤 Type du rôle:', typeof dataToSend.role);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || 'Erreur lors de la création de l\'agent');
+      const result = await apiUtils.post('/users', dataToSend);
+      console.log('✅ Agent créé:', result);
+
+      if (!result) {
+        throw new Error('Erreur lors de la création de l\'agent');
       }
 
+      // Attendre un peu avant de recharger pour laisser le temps à la base de données
+      console.log('🔄 Rechargement de la liste des agents...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // 500ms de délai
       await fetchAgents();
       setShowAddModal(false);
+      setError(''); // Effacer les erreurs précédentes
 
       // Afficher la notification de succès
       setSuccessMessage({
-        title: 'Agent ajouté !',
-        message: `L'agent ${agentData.prenom} ${agentData.nom} a été créé avec succès.`
+        title: '✅ Agent ajouté !',
+        message: `L'agent ${agentData.prenom} ${agentData.nom} a été créé avec succès et ajouté à votre équipe.`
       });
       setShowSuccessNotification(true);
+
+      // Fermer automatiquement la notification après 4 secondes
+      setTimeout(() => {
+        setShowSuccessNotification(false);
+      }, 4000);
     } catch (err) {
       console.error('Erreur:', err);
       throw new Error(err instanceof Error ? err.message : 'Erreur lors de la création de l\'agent');
@@ -245,74 +209,9 @@ const AgentsPage = () => {
     }
   };
 
-  // Fonction pour modifier un agent
-  const handleEditAgent = async (agentData: Omit<Agent, 'id'>) => {
-    if (!currentAgent) return;
+  // Fonction de modification supprimée - seule la visualisation est conservée
 
-    try {
-      setIsSaving(true);
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const updateData: Record<string, string> = {
-        name: `${agentData.prenom} ${agentData.nom}`,
-        email: agentData.email,
-        telephone: agentData.telephone || '',
-        adresse: agentData.adresse || '',
-        role: agentData.role,
-        statut: agentData.statut || 'actif'
-      };
-
-      // Ajouter le mot de passe seulement s'il est fourni
-      if (agentData.password) {
-        updateData.password = agentData.password;
-      }
-
-      const response = await fetch(`http://localhost:3000/users/${currentAgent.id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(updateData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || 'Erreur lors de la modification de l\'agent');
-      }
-
-      await fetchAgents();
-      setShowEditModal(false);
-      setCurrentAgent(null);
-
-      // Afficher la notification de succès
-      setSuccessMessage({
-        title: 'Agent modifié !',
-        message: `L'agent ${agentData.prenom} ${agentData.nom} a été modifié avec succès.`
-      });
-      setShowSuccessNotification(true);
-    } catch (err) {
-      console.error('Erreur:', err);
-      throw new Error(err instanceof Error ? err.message : 'Erreur lors de la modification de l\'agent');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Fonctions utilitaires pour les modals (commentées car non utilisées dans le tableau actuel)
-  // const handleDeleteClick = (agent: Agent) => {
-  //   setCurrentAgent(agent);
-  //   setShowDeleteModal(true);
-  // };
-
-  // const handleEditClick = (agent: Agent) => {
-  //   setCurrentAgent(agent);
-  //   setShowEditModal(true);
-  // };
+  // Fonctions utilitaires supprimées car seule la visualisation est conservée
 
   // Filtrer les agents
   const filteredAgents = agents.filter(agent => {
@@ -349,12 +248,10 @@ const AgentsPage = () => {
     );
   };
 
-  // Fonction pour formater la date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) {
-      return 'Non définie';
-    }
-    return new Date(dateString).toLocaleDateString('fr-FR');
+  // Affichage des dates comme elles viennent de la base
+  const formatDate = (dateString?: any) => {
+    if (!dateString) return 'Non définie';
+    return String(dateString); // Convertir en string pour l'affichage
   };
 
   return (
@@ -636,7 +533,7 @@ const AgentsPage = () => {
                         <button
                           onClick={() => window.open(`/admin/Agents/${agent.id}`, '_blank')}
                           className="text-blue-600 hover:text-blue-900 p-1.5 rounded-md hover:bg-blue-50 transition-all duration-300 transform hover:scale-110 hover:rotate-12 hover:shadow-md"
-                          title="Voir les détails"
+                          title="Voir les détails de l'agent"
                         >
                           <Eye size={14} />
                         </button>
@@ -666,33 +563,7 @@ const AgentsPage = () => {
         isLoading={isSaving}
       />
 
-      {/* Modal de modification d'agent */}
-      <AgentModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setCurrentAgent(null);
-        }}
-        onSave={handleEditAgent}
-        agent={currentAgent}
-        isLoading={isSaving}
-      />
-
-      {/* Modal de confirmation de suppression */}
-      <ConfirmDialog
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setCurrentAgent(null);
-        }}
-        onConfirm={handleDeleteAgent}
-        title="Supprimer l&apos;agent"
-        message={`Êtes-vous sûr de vouloir supprimer l&apos;agent ${currentAgent?.prenom} ${currentAgent?.nom} ? Cette action est irréversible.`}
-        confirmText="Supprimer"
-        cancelText="Annuler"
-        type="danger"
-        isLoading={isDeleting}
-      />
+      {/* Modals de modification et suppression supprimés - seule la visualisation est conservée */}
 
       {/* Composant de scroll amélioré */}
       <ScrollToTop />

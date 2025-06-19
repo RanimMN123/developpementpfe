@@ -19,16 +19,21 @@ export class ClientController {
     return this.clientService.findAllByUser(req.user.id); // Récupérer les clients de l'utilisateur connecté
   }
   @Get(':id')
-  async getClientById(@Param('id') id: number): Promise<Client> {
+  async getClientById(@Param('id') id: number, @Request() req): Promise<Client> {
     try {
       // Appel de la méthode du service pour récupérer le client
       const client = await this.clientService.findOne(id);
-      
+
       // Vérifier si un client a été trouvé, sinon lancer une exception
       if (!client) {
         throw new NotFoundException(`Client avec l'ID ${id} non trouvé.`);
       }
-      
+
+      // Vérifier que le client appartient à l'utilisateur connecté
+      if (client.userId !== req.user.id) {
+        throw new NotFoundException(`Client avec l'ID ${id} non trouvé.`); // Ne pas révéler l'existence
+      }
+
       return client;
     } catch (error) {
       console.error('Erreur dans le contrôleur:', error);

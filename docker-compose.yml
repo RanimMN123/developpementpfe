@@ -2,41 +2,90 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
-    container_name: newcontainer
-    restart: always
+    image: postgres:15-alpine
+    container_name: admin_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Azerty123*
       POSTGRES_DB: adminapp
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d adminapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: greenarrow-backend
+    image: ranimmn/ranouma:backend-final-fixed-19-06-2025
+    container_name: admin_backend
     restart: unless-stopped
     ports:
       - '3000:3000'
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
       DATABASE_URL: "postgresql://postgres:Azerty123*@postgres:5432/adminapp?schema=public"
+      JWT_SECRET: "ranouma-super-secret-jwt-key-2025-production"
+      JWT_REFRESH_SECRET: "ranouma-refresh-secret-key-2025-production"
+      JWT_EXPIRES_IN: "1h"
+      JWT_REFRESH_EXPIRES_IN: "7d"
+      CORS_ORIGIN: "*"
+      NETWORK_INTERFACES: "0.0.0.0,192.168.100.44,192.168.100.187,192.168.100.228"
     volumes:
-      - ./backend:/app
-    command: npm run start:dev
+      - backend_uploads:/app/public/images
+      - backend_logs:/app/logs
     networks:
       - my-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Admin
+  frontend:
+    image: ranimmn/ranouma:front18-06-2025
+    container_name: admin_frontend
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    networks:
+      - my-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
   postgres-data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
 
 networks:
   my-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -35,6 +35,7 @@ import {
 } from 'recharts';
 import PageLayout from '../../components/PageLayout';
 import TndIcon from '../../dashboard/components/TndIcon';
+import { apiUtils } from '../../../../utils/apiUtils';
 
 // Interfaces
 interface Agent {
@@ -116,31 +117,8 @@ const AgentDetailPage = () => {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       // Récupérer les informations de l'agent (user)
-      const userResponse = await fetch(`http://localhost:3000/users/${agentId}`, {
-        headers,
-      });
-
-      if (!userResponse.ok) {
-        if (userResponse.status === 404) {
-          throw new Error('Utilisateur non trouvé');
-        } else if (userResponse.status === 403) {
-          throw new Error('Accès non autorisé');
-        } else {
-          throw new Error(`Erreur ${userResponse.status}: ${userResponse.statusText}`);
-        }
-      }
-
-      const userData = await userResponse.json();
+      const userData = await apiUtils.get(`/users/${agentId}`);
 
       const agentData: Agent = {
         id: userData.id,
@@ -158,38 +136,25 @@ const AgentDetailPage = () => {
       // Récupérer les statistiques détaillées avec les bons endpoints selon votre backend
       console.log(`🔍 Récupération des données pour l'agent ${agentId}`);
 
-      const [commandesRes, clientsRes] = await Promise.allSettled([
-        fetch(`http://localhost:3000/users/${agentId}/orders`, { headers }),
-        fetch(`http://localhost:3000/users/${agentId}/clients`, { headers })
-      ]);
-
       let commandes: Commande[] = [];
       let clients: Client[] = [];
 
-      // Traiter les commandes
-      if (commandesRes.status === 'fulfilled' && commandesRes.value.ok) {
-        try {
-          const commandesData = await commandesRes.value.json();
-          console.log(`📦 Commandes récupérées pour l'agent ${agentId}:`, commandesData);
-          commandes = Array.isArray(commandesData) ? commandesData : [];
-        } catch (error) {
-          console.error('Erreur traitement commandes:', error);
-        }
-      } else {
-        console.error('❌ Erreur récupération commandes:', commandesRes);
+      try {
+        // Récupérer les commandes
+        const commandesData = await apiUtils.get(`/users/${agentId}/orders`);
+        console.log(`📦 Commandes récupérées pour l'agent ${agentId}:`, commandesData);
+        commandes = Array.isArray(commandesData) ? commandesData : [];
+      } catch (error) {
+        console.error('Erreur récupération commandes:', error);
       }
 
-      // Traiter les clients
-      if (clientsRes.status === 'fulfilled' && clientsRes.value.ok) {
-        try {
-          const clientsData = await clientsRes.value.json();
-          console.log(`👥 Clients récupérés pour l'agent ${agentId}:`, clientsData);
-          clients = Array.isArray(clientsData) ? clientsData : [];
-        } catch (error) {
-          console.error('Erreur traitement clients:', error);
-        }
-      } else {
-        console.error('❌ Erreur récupération clients:', clientsRes);
+      try {
+        // Récupérer les clients
+        const clientsData = await apiUtils.get(`/users/${agentId}/clients`);
+        console.log(`👥 Clients récupérés pour l'agent ${agentId}:`, clientsData);
+        clients = Array.isArray(clientsData) ? clientsData : [];
+      } catch (error) {
+        console.error('Erreur récupération clients:', error);
       }
 
       // Calculer les statistiques selon votre structure backend
@@ -246,7 +211,7 @@ const AgentDetailPage = () => {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dayKey = date.toISOString().slice(0, 10); // YYYY-MM-DD
-        const dayName = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+        const dayName = date.toString().slice(0, 10);
         periods.push({ key: dayKey, name: dayName });
         revenueData[dayKey] = 0;
       }
@@ -256,7 +221,7 @@ const AgentDetailPage = () => {
         const date = new Date();
         date.setMonth(date.getMonth() - i);
         const monthKey = date.toISOString().slice(0, 7); // YYYY-MM
-        const monthName = date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+        const monthName = date.toString().slice(0, 7);
         periods.push({ key: monthKey, name: monthName });
         revenueData[monthKey] = 0;
       }
@@ -277,15 +242,27 @@ const AgentDetailPage = () => {
       commandes.forEach(commande => {
         let periodKey: string;
 
-        if (period === 'day') {
-          periodKey = commande.createdAt.slice(0, 10); // YYYY-MM-DD
-        } else if (period === 'month') {
-          periodKey = commande.createdAt.slice(0, 7); // YYYY-MM
-        } else {
-          periodKey = commande.createdAt.slice(0, 4); // YYYY
+        // Extraire la partie de date selon la période
+        if (!commande.createdAt) {
+          console.warn('Date manquante ignorée pour la commande:', commande.id);
+          return; // Ignorer cette commande si pas de date
         }
 
-        if (revenueData.hasOwnProperty(periodKey)) {
+        const dateStr = String(commande.createdAt);
+
+        if (period === 'day') {
+          periodKey = dateStr.slice(0, 10); // YYYY-MM-DD
+        } else if (period === 'month') {
+          periodKey = dateStr.slice(0, 7); // YYYY-MM
+        } else if (period === 'year') {
+          periodKey = dateStr.slice(0, 4); // YYYY
+        } else {
+          periodKey = dateStr.slice(0, 10); // Par défaut jour
+        }
+
+
+
+        if (Object.prototype.hasOwnProperty.call(revenueData, periodKey)) {
           // Le UserService retourne déjà le total calculé
           revenueData[periodKey] += commande.total || 0;
         }
@@ -314,8 +291,10 @@ const AgentDetailPage = () => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR');
+  // Affichage des dates comme elles viennent de la base
+  const formatDate = (dateString: any) => {
+    if (!dateString) return 'Date non disponible';
+    return String(dateString); // Convertir en string pour l'affichage
   };
 
   const getStatusBadge = (statut: string) => {
@@ -534,7 +513,10 @@ const AgentDetailPage = () => {
       description="Détails et statistiques de l'agent"
       actions={
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            console.log('Bouton retour cliqué');
+            router.push('/admin/Agents');
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
         >
           <ArrowLeft size={16} />
@@ -543,33 +525,33 @@ const AgentDetailPage = () => {
       }
     >
       {/* Informations de l'agent */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border p-3 mb-4">
         <div className="flex items-start">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-lg font-bold text-gray-900 mb-1">
               {agent.prenom} {agent.nom}
             </h2>
-            <p className="text-gray-600 mb-4">{agent.role}</p>
+            <p className="text-gray-600 mb-2 text-sm">{agent.role}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-gray-600">
-                <Mail size={16} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 text-gray-600 text-sm">
+                <Mail size={14} />
                 <span>{agent.email}</span>
               </div>
               {agent.telephone && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Phone size={16} />
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <Phone size={14} />
                   <span>{agent.telephone}</span>
                 </div>
               )}
               {agent.adresse && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin size={16} />
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <MapPin size={14} />
                   <span>{agent.adresse}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-gray-600">
-                <Calendar size={16} />
+              <div className="flex items-center gap-2 text-gray-600 text-sm">
+                <Calendar size={14} />
                 <span>Créé le {formatDate(agent.dateCreation)}</span>
               </div>
             </div>
@@ -580,80 +562,76 @@ const AgentDetailPage = () => {
       {/* Statistiques principales */}
       {stats && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm p-3 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold">{stats.totalCommandes}</div>
-                  <div className="text-blue-100 text-sm font-medium">Commandes totales</div>
+                  <div className="text-xl font-bold">{stats.totalCommandes}</div>
+                  <div className="text-blue-100 text-xs font-medium">Commandes totales</div>
                 </div>
                 <div>
-                  <ShoppingCart className="w-8 h-8 text-blue-100" />
+                  <ShoppingCart className="w-5 h-5 text-blue-100" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-3 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold">{stats.totalClients}</div>
-                  <div className="text-green-100 text-sm font-medium">Clients gérés</div>
+                  <div className="text-xl font-bold">{stats.totalClients}</div>
+                  <div className="text-green-100 text-xs font-medium">Clients gérés</div>
                 </div>
                 <div>
-                  <Users className="w-8 h-8 text-green-100" />
+                  <Users className="w-5 h-5 text-green-100" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-sm p-3 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-                  <div className="text-purple-100 text-sm font-medium">Chiffre d&apos;affaires</div>
+                  <div className="text-lg font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                  <div className="text-purple-100 text-xs font-medium">Chiffre d&apos;affaires</div>
                 </div>
                 <div>
-                  <TndIcon className="w-8 h-8 text-purple-100" />
+                  <TndIcon className="w-5 h-5 text-purple-100" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg shadow-sm p-6 text-white">
+            <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg shadow-sm p-3 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-3xl font-bold">{formatCurrency(stats.averageOrderValue)}</div>
-                  <div className="text-amber-100 text-sm font-medium">Panier moyen</div>
+                  <div className="text-lg font-bold">{formatCurrency(stats.averageOrderValue)}</div>
+                  <div className="text-amber-100 text-xs font-medium">Panier moyen</div>
                 </div>
                 <div>
-                  <TrendingUp className="w-8 h-8 text-amber-100" />
+                  <TrendingUp className="w-5 h-5 text-amber-100" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Graphique des revenus avec options - Style Dashboard */}
-          <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-gray-100 p-8 group hover:shadow-2xl transition-all duration-300 mb-6">
+          <div className="relative overflow-hidden bg-white rounded-lg shadow-sm border border-gray-100 p-4 group transition-all duration-300 mb-4">
             {/* Gradient Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 opacity-30"></div>
-
-            {/* Decorative Elements */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 opacity-5 rounded-full transform translate-x-8 -translate-y-8"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400 to-blue-500 opacity-5 rounded-full transform -translate-x-6 translate-y-6"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 opacity-20"></div>
 
             <div className="relative z-10">
               {/* Header avec options */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-lg">
-                    {chartType === 'bar' && <BarChart3 className="text-white" size={24} />}
-                    {chartType === 'line' && <TrendingUp className="text-white" size={24} />}
-                    {chartType === 'area' && <Activity className="text-white" size={24} />}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-lg shadow-sm">
+                    {chartType === 'bar' && <BarChart3 className="text-white" size={16} />}
+                    {chartType === 'line' && <TrendingUp className="text-white" size={16} />}
+                    {chartType === 'area' && <Activity className="text-white" size={16} />}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center">
                       Évolution des revenus
                     </h2>
-                    <div className="text-gray-600 text-sm mt-1 flex items-center">
-                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mr-2"></div>
+                    <div className="text-gray-600 text-xs mt-1 flex items-center">
+                      <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mr-2"></div>
                       <span>
                         {chartPeriod === 'day' && 'Analyse quotidienne (30 derniers jours)'}
                         {chartPeriod === 'month' && 'Analyse mensuelle (12 derniers mois)'}
@@ -664,12 +642,12 @@ const AgentDetailPage = () => {
                 </div>
 
                 {/* Options de personnalisation - Style Dashboard */}
-                <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0">
+                <div className="flex flex-col sm:flex-row gap-1 mt-2 sm:mt-0">
                   {/* Sélecteur de période */}
                   <select
                     value={chartPeriod}
                     onChange={(e) => setChartPeriod(e.target.value as 'day' | 'month' | 'year')}
-                    className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="px-2 py-1 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="day">30 jours</option>
                     <option value="month">12 mois</option>
@@ -679,7 +657,7 @@ const AgentDetailPage = () => {
                   {/* Sélecteur de type de graphique */}
                   <div className="relative">
                     <button
-                      className="flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between gap-1 px-2 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
                       onClick={() => {
                         // Cycle through chart types
                         const types: ('bar' | 'line' | 'area')[] = ['bar', 'line', 'area'];
@@ -688,45 +666,45 @@ const AgentDetailPage = () => {
                         setChartType(types[nextIndex]);
                       }}
                     >
-                      {chartType === 'bar' && <BarChart3 size={16} />}
-                      {chartType === 'line' && <TrendingUp size={16} />}
-                      {chartType === 'area' && <Activity size={16} />}
+                      {chartType === 'bar' && <BarChart3 size={14} />}
+                      {chartType === 'line' && <TrendingUp size={14} />}
+                      {chartType === 'area' && <Activity size={14} />}
                       <span>
                         {chartType === 'bar' && 'Barres'}
                         {chartType === 'line' && 'Ligne'}
                         {chartType === 'area' && 'Aires'}
                       </span>
-                      <ChevronDown size={14} />
+                      <ChevronDown size={12} />
                     </button>
                   </div>
 
                   {/* Option pour afficher/masquer les valeurs */}
                   <button
                     onClick={() => setShowValues(!showValues)}
-                    className={`flex items-center gap-2 px-3 py-2 border rounded-md transition-colors ${
+                    className={`flex items-center gap-1 px-2 py-1 text-sm border rounded-md transition-colors ${
                       showValues
                         ? 'border-blue-300 bg-blue-50 text-blue-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    <TndIcon size={16} />
+                    <TndIcon size={14} />
                     <span>Valeurs</span>
                   </button>
 
                   {/* Bouton d'actualisation */}
                   <button
-                    className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
                     onClick={() => window.location.reload()}
                   >
-                    <RefreshCw size={16} />
+                    <RefreshCw size={14} />
                     <span className="hidden sm:inline">Actualiser</span>
                   </button>
                 </div>
               </div>
 
               {/* Graphique - Style Dashboard */}
-              <div className="relative mt-8">
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="relative mt-4">
+                <div className="bg-white/50 backdrop-blur-sm rounded-lg p-2 border border-white/20">
                   {stats ? (() => {
                     // Utiliser toutes les commandes pour le graphique
                     const chartData = calculateRevenueByPeriod(allCommandes || [], chartPeriod);
@@ -739,8 +717,8 @@ const AgentDetailPage = () => {
                       return <AreaChart data={chartData} />;
                     }
                   })() : (
-                    <div className="h-64 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div className="h-48 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                     </div>
                   )}
                 </div>
@@ -749,58 +727,58 @@ const AgentDetailPage = () => {
           </div>
 
           {/* Commandes récentes et Clients récents */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Commandes récentes */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Package className="h-5 w-5 text-green-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Commandes récentes</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Package className="h-4 w-4 text-green-600" />
+                <h3 className="text-sm font-semibold text-gray-900">Commandes récentes</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {stats.recentCommandes.length > 0 ? (
                   stats.recentCommandes.map((commande) => (
-                    <div key={commande.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={commande.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">Commande #{commande.id}</div>
-                        <div className="text-sm text-gray-500">{formatDate(commande.createdAt)}</div>
+                        <div className="font-medium text-gray-900 text-sm">Commande #{commande.id}</div>
+                        <div className="text-xs text-gray-500">{formatDate(commande.createdAt)}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium text-gray-900">{formatCurrency(commande.total)}</div>
+                        <div className="font-medium text-gray-900 text-sm">{formatCurrency(commande.total)}</div>
                         {getStatusBadge(commande.status)}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-4">Aucune commande trouvée</p>
+                  <p className="text-gray-500 text-center py-3 text-sm">Aucune commande trouvée</p>
                 )}
               </div>
             </div>
 
             {/* Clients récents */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Users className="h-5 w-5 text-purple-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Clients gérés</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-4 w-4 text-purple-600" />
+                <h3 className="text-sm font-semibold text-gray-900">Clients gérés</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {stats.recentClients.length > 0 ? (
                   stats.recentClients.map((client) => (
-                    <div key={client.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={client.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">{client.name}</div>
-                        <div className="text-sm text-gray-600">{client.address}</div>
+                        <div className="font-medium text-gray-900 text-sm">{client.name}</div>
+                        <div className="text-xs text-gray-600">{client.address}</div>
                         {client.phoneNumber && (
-                          <div className="text-sm text-gray-500">{client.phoneNumber}</div>
+                          <div className="text-xs text-gray-500">{client.phoneNumber}</div>
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-gray-500">ID: {client.id}</div>
-                        <div className="text-sm text-gray-400">{formatDate(client.createdAt)}</div>
+                        <div className="text-xs text-gray-500">ID: {client.id}</div>
+                        <div className="text-xs text-gray-400">{formatDate(client.createdAt)}</div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-4">Aucun client trouvé</p>
+                  <p className="text-gray-500 text-center py-3 text-sm">Aucun client trouvé</p>
                 )}
               </div>
             </div>

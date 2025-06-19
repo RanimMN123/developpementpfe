@@ -123,13 +123,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onProductA
       if (!response.ok) throw new Error(`Erreur: ${response.status}`);
       await response.json();
 
-      setSuccess(mode === 'create' ? 'Produit ajouté avec succès' : 'Produit modifié avec succès');
-
+      // Appeler la fonction parent qui gère la notification centrée
       onProductAction();
 
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      // Fermer le modal immédiatement
+      onClose();
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : `Erreur lors de ${mode === 'create' ? "l'ajout" : 'la modification'} du produit`;
@@ -177,16 +175,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onProductA
               <div className="text-red-800 text-sm">{error}</div>
             </div>
           )}
-          {success && (
-            <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="text-green-800 text-sm">{success}</div>
-            </div>
-          )}
+          {/* La notification de succès est maintenant gérée par le composant parent */}
 
           <div className="space-y-6">
             {/* Champ d'upload d'image */}

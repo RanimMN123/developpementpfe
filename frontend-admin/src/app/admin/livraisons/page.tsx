@@ -5,7 +5,7 @@ import PageLayout from '../components/PageLayout';
 import DeliveryStatusBadge from '../../../components/DeliveryStatusBadge';
 import DeliveryStatusSelector from '../../../components/DeliveryStatusSelector';
 import { getAllDeliveryStatuses, DeliveryStatus } from '../../../utils/deliveryStatus';
-import { Package, Calendar, MapPin, User } from 'lucide-react';
+import { Package, Calendar, Clock, MapPin, User } from 'lucide-react';
 
 // Interface pour une livraison
 interface Delivery {
@@ -13,7 +13,8 @@ interface Delivery {
   orderId: number;
   clientName: string;
   address: string;
-  scheduledDate: string;
+  scheduledDate: string; // Date de livraison prévue (manuelle)
+  createdAt?: string;    // Date de création de la commande (automatique)
   status: DeliveryStatus;
   driverName?: string;
 }
@@ -25,6 +26,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1001,
     clientName: 'Ahmed Ben Ali',
     address: 'Avenue Habib Bourguiba, Tunis',
+    createdAt: '2025-06-14T08:30:00.000Z',
     scheduledDate: '2024-01-15',
     status: DeliveryStatus.EN_ATTENTE,
     driverName: 'Mohamed Trabelsi'
@@ -34,6 +36,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1002,
     clientName: 'Fatma Khelifi',
     address: 'Rue de la République, Sfax',
+    createdAt: '2025-06-14T09:15:00.000Z',
     scheduledDate: '2024-01-15',
     status: DeliveryStatus.CONFIRMEE,
     driverName: 'Ali Mansouri'
@@ -43,6 +46,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1003,
     clientName: 'Karim Bouazizi',
     address: 'Boulevard 14 Janvier, Sousse',
+    createdAt: '2025-06-14T10:45:00.000Z',
     scheduledDate: '2024-01-16',
     status: DeliveryStatus.PRETE,
     driverName: 'Sami Gharbi'
@@ -52,6 +56,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1004,
     clientName: 'Leila Hamdi',
     address: 'Avenue de la Liberté, Monastir',
+    createdAt: '2025-06-14T11:20:00.000Z',
     scheduledDate: '2024-01-16',
     status: DeliveryStatus.EN_COURS_DE_LIVRAISON,
     driverName: 'Nabil Jemli'
@@ -61,6 +66,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1005,
     clientName: 'Youssef Mejri',
     address: 'Rue Farhat Hached, Gabès',
+    createdAt: '2025-06-13T16:30:00.000Z',
     scheduledDate: '2024-01-14',
     status: DeliveryStatus.LIVREE,
     driverName: 'Hedi Sassi'
@@ -70,6 +76,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1006,
     clientName: 'Amina Dridi',
     address: 'Avenue Taieb Mhiri, Kairouan',
+    createdAt: '2025-06-14T14:10:00.000Z',
     scheduledDate: '2024-01-17',
     status: DeliveryStatus.REPORTEE,
     driverName: 'Rami Ouali'
@@ -79,6 +86,7 @@ const mockDeliveries: Delivery[] = [
     orderId: 1007,
     clientName: 'Slim Benaissa',
     address: 'Rue Ibn Khaldoun, Bizerte',
+    createdAt: '2025-06-14T15:45:00.000Z',
     scheduledDate: '2024-01-15',
     status: DeliveryStatus.ANNULEE
   }
@@ -160,7 +168,10 @@ const LivraisonsPage: React.FC = () => {
                   Adresse
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date prévue
+                  Créé le
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Livraison prévue
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Livreur
@@ -191,6 +202,14 @@ const LivraisonsPage: React.FC = () => {
                     <div className="flex items-center">
                       <MapPin size={16} className="text-gray-400 mr-2" />
                       <span className="text-sm text-gray-900">{delivery.address}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <Clock size={16} className="text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-500">
+                        {delivery.createdAt ? new Date(delivery.createdAt).toLocaleDateString('fr-FR') : '-'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

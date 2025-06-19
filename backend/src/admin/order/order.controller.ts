@@ -1,5 +1,5 @@
 // order.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from '../dto/createorder.dto';
 import { UpdateOrderStatusDto } from '../dto/updateorder-status.dto';
@@ -19,9 +19,9 @@ export class OrderController {
   }
 
   @Get('daily-revenue')
-async getDailyRevenue() {
-  return this.orderService.getDailyRevenue();
-}
+  async getDailyRevenue(@Query('range') range?: string) {
+    return this.orderService.getDailyRevenue(range);
+  }
 
 
 

@@ -1,0 +1,36 @@
+# Dockerfile simplifié pour tests rapides
+FROM node:18-alpine
+
+# Installer les dépendances système
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Installer toutes les dépendances
+RUN npm install
+
+# Copier le code source
+COPY . .
+
+# Générer le client Prisma
+RUN npx prisma generate
+
+# Construire l'application
+RUN npm run build
+
+# Variables d'environnement
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Exposer le port
+EXPOSE 3000
+
+# Créer le dossier pour les uploads
+RUN mkdir -p /app/public/images
+
+# Commande de démarrage
+CMD ["npm", "run", "start:prod"]

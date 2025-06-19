@@ -23,8 +23,11 @@ import { OrderModule } from './admin/order/order.module';
 import { StatsModule } from './stats/stats.module';
 import { DeliveryPlanningModule } from './delivery-planning/delivery-planning.module';
 import { CaisseModule } from './caisse/caisse.module';
+import { SecurityModule } from './security/security.module';
+import { CsrfController } from './auth/csrf.controller';
 @Module({
   imports: [
+    SecurityModule, // Module de sécurité en premier
     StatsModule,
     OrderModule,
     ProductModule,
@@ -38,12 +41,16 @@ import { CaisseModule } from './caisse/caisse.module';
     DeliveryPlanningModule,
     CaisseModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'defaultSecret',  // ajoute une clé secrète
-      signOptions: { expiresIn: '1d' },  // exemple d'expiration
+      secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',  // Clé plus sécurisée
+      signOptions: {
+        expiresIn: '1d',
+        issuer: 'your-app-name',
+        audience: 'your-app-users',
+      },
     }),
     ProductModule
   ],
-  controllers: [AppController, AdminController, ClientController, FournisseurController],
+  controllers: [AppController, AdminController, ClientController, FournisseurController, CsrfController],
   providers: [AppService, CategoryService, ProductService, AdminService, ClientService, FournisseurService],
 })
 export class AppModule {}

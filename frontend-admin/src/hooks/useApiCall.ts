@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import axios, { AxiosRequestConfig } from 'axios';
 import { useAuth } from './useAuth';
+import { securityManager, validateFormData } from '../utils/security';
 
 interface ApiCallState<T> {
   data: T | null;
@@ -45,16 +46,57 @@ export const useApiCall = <T = any>(options?: UseApiCallOptions) => {
     }));
 
     try {
+      // Validation et sanitisation des données si présentes
+      let processedData = config?.data;
+      if (processedData && typeof processedData === 'object') {
+        const validation = validateFormData(processedData);
+        if (!validation.isValid) {
+          const errorMsg = `Données invalides: ${validation.errors.join(', ')}`;
+          setState({
+            data: null,
+            isLoading: false,
+            error: errorMsg
+          });
+          options?.onError?.(errorMsg);
+          return null;
+        }
+        processedData = validation.sanitizedData;
+      }
+
+      // Préparer les headers sécurisés
+      const baseHeaders: Record<string, string> = {};
+
+      // Copier les headers de config en s'assurant qu'ils sont des strings
+      if (config?.headers) {
+        Object.entries(config.headers).forEach(([key, value]) => {
+          if (value && typeof value === 'string') {
+            baseHeaders[key] = value;
+          }
+        });
+      }
+
+      // Ajouter l'Authorization seulement si le token existe
+      if (token) {
+        baseHeaders['Authorization'] = `Bearer ${token}`;
+      }
+
+      const secureHeaders = securityManager.getSecureHeaders(baseHeaders);
+
       const response = await axios({
         url,
         method: config?.method || 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          ...config?.headers
-        },
+        headers: secureHeaders,
+        data: processedData,
+        withCredentials: true, // Pour les cookies CSRF
+        timeout: 30000, // Timeout de 30 secondes
         ...config
       });
+
+      // Extraire et stocker le token CSRF de la réponse si présent
+      const csrfToken = response.headers['x-csrf-token'];
+      if (csrfToken) {
+        securityManager.setCsrfToken(csrfToken);
+      }
 
       setState({
         data: response.data,
@@ -69,22 +111,32 @@ export const useApiCall = <T = any>(options?: UseApiCallOptions) => {
 
       if (error.response) {
         // Erreur de réponse du serveur
-        switch (error.response.status) {
+        const status = error.response.status;
+        const data = error.response.data;
+
+        switch (status) {
+          case 400:
+            errorMessage = data?.message || 'Données invalides';
+            break;
           case 401:
             errorMessage = 'Session expirée. Veuillez vous reconnecter.';
-            // Optionnel: déclencher une déconnexion automatique
             break;
           case 403:
-            errorMessage = 'Accès non autorisé.';
+            errorMessage = data?.message || 'Accès refusé. Token CSRF invalide ou manquant.';
+            // Tenter de récupérer un nouveau token CSRF
+            securityManager.fetchCsrfToken();
             break;
           case 404:
             errorMessage = 'Ressource non trouvée.';
+            break;
+          case 429:
+            errorMessage = 'Trop de requêtes. Veuillez patienter.';
             break;
           case 500:
             errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.';
             break;
           default:
-            errorMessage = error.response.data?.message || 'Erreur de communication avec le serveur';
+            errorMessage = data?.message || `Erreur ${status}`;
         }
       } else if (error.request) {
         // Erreur de réseau
