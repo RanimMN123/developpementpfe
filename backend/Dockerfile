@@ -1,4 +1,4 @@
-# Dockerfile Railway - Version qui marche
+# Dockerfile Railway - Version corrigée pour commit 337e5cf
 FROM node:18-alpine
 
 # Installer les dépendances système
