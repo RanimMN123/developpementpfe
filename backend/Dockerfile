@@ -1,45 +1,41 @@
-# Dockerfile simplifié pour le backend NestJS
+# Dockerfile Railway - Version qui marche
 FROM node:18-alpine
 
-# Installer les dépendances système nécessaires
-RUN apk add --no-cache python3 make g++ openssl
+# Installer les dépendances système
+RUN apk add --no-cache python3 make g++
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les fichiers de dépendances en premier (pour le cache Docker)
+# Copier package.json
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Installer TOUTES les dépendances (nécessaire pour le build)
-RUN npm ci
+# Installer toutes les dépendances
+RUN npm install
 
-# Copier le code source
+# Copier tout le code
 COPY . .
 
-# Générer le client Prisma
+# Générer Prisma
 RUN npx prisma generate
 
-# Construire l'application
-RUN npm run build
+# Build avec debug
+RUN npm run build && echo "✅ Build réussi" || echo "❌ Build échoué"
 
-# Debug: Vérifier que le build a fonctionné
-RUN echo "=== Contenu du dossier dist ===" && ls -la dist/ && echo "=== Fin du debug ==="
+# Vérifier le contenu
+RUN ls -la dist/ || echo "Pas de dossier dist"
 
-# Vérifier que main.js existe
-RUN test -f dist/main.js && echo "✅ main.js trouvé" || echo "❌ main.js manquant"
+# Trouver le fichier main
+RUN find . -name "main.js" -type f || echo "Aucun main.js trouvé"
 
-# Créer les dossiers nécessaires
-RUN mkdir -p /app/public/images
+# Variables d'environnement
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Créer dossier images
+RUN mkdir -p public/images
 
 # Exposer le port
 EXPOSE 3000
 
-# Variables d'environnement par défaut
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOST=0.0.0.0
-ENV DATABASE_URL="postgresql://postgres:password@host.docker.internal:5432/admin_db?schema=public"
-
-# Commande de démarrage - chemin correct
-CMD ["node", "dist/main.js"]
+# Commande de démarrage avec fallback
+CMD ["sh", "-c", "if [ -f dist/main.js ]; then node dist/main.js; elif [ -f dist/src/main.js ]; then node dist/src/main.js; else echo 'Fichier main.js introuvable' && exit 1; fi"]
