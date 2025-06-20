@@ -385,7 +385,10 @@ export class OrderService {
       }
 
       const orders = await this.prisma.order.findMany({
-        where: dateFilter,
+        where: {
+          ...dateFilter,
+          status: 'DELIVERED' // ✅ SEULEMENT les commandes livrées comptent pour les revenus
+        },
         include: {
           items: {
             include: {

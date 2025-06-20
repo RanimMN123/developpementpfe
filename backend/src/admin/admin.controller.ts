@@ -74,6 +74,19 @@ export class AdminController {
     }
   }
 
+  // Route pour récupérer tous les clients (admin seulement)
+  @Get('clients')
+  @UseGuards(JwtAuthGuard)
+  @SkipCsrf()
+  async getAllClients() {
+    try {
+      const clients = await this.adminService.getAllClients();
+      return clients;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // ======== PRODUITS ========
 
   // Créer un produit

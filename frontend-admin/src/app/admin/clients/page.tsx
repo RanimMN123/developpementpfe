@@ -17,6 +17,7 @@ import PageLayout, { PrimaryButton, SecondaryButton, LoadingState, ErrorState, E
 import SearchAndFilter from '../components/SearchAndFilter';
 import SuccessNotification from '../../../components/SuccessNotification';
 import ScrollToTop from '../components/ScrollToTop';
+import { buildApiUrl, getAuthHeaders, API_ENDPOINTS } from '../../../config/api';
 import './clients.css';
 
 // Interfaces
@@ -354,15 +355,8 @@ export default function ClientsPage() {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('http://localhost:3000/api/clients', {
-        headers,
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN.CLIENTS), {
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -382,15 +376,8 @@ export default function ClientsPage() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('http://localhost:3000/users', {
-        headers,
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.USERS), {
+        headers: getAuthHeaders(),
       });
 
       if (response.ok) {
@@ -444,24 +431,15 @@ export default function ClientsPage() {
   // Handle save client
   const handleSaveClient = async (formData: ClientFormData) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       const url = selectedClient
-        ? `http://localhost:3000/api/clients/${selectedClient.id}`
-        : 'http://localhost:3000/api/clients';
+        ? buildApiUrl(`${API_ENDPOINTS.CLIENTS}/${selectedClient.id}`)
+        : buildApiUrl(API_ENDPOINTS.ADMIN.CLIENTS);
 
       const method = selectedClient ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers,
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
 
@@ -489,16 +467,9 @@ export default function ClientsPage() {
     if (!clientToDelete) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`http://localhost:3000/api/clients/${clientToDelete.id}`, {
+      const response = await fetch(buildApiUrl(`${API_ENDPOINTS.CLIENTS}/${clientToDelete.id}`), {
         method: 'DELETE',
-        headers,
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {

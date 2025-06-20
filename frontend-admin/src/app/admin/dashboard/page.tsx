@@ -211,20 +211,22 @@ const Dashboard = () => {
         if (Array.isArray(commandesData)) {
           totalOrders = commandesData.length;
 
-          // Calculer le chiffre d'affaires total à partir des items
-          totalRevenue = commandesData.reduce((sum, commande) => {
-            // Calculer le total de cette commande à partir de ses items
-            const commandeTotal = (commande.items || []).reduce((itemSum: number, item: any) => {
-              const quantity = parseFloat(item.quantity) || 0;
-              const price = parseFloat(item.product?.price) || 0;
-              const itemTotal = quantity * price;
-              console.log(`💰 Item ${item.id}: ${quantity} x ${price} = ${itemTotal}`);
-              return itemSum + itemTotal;
-            }, 0);
+          // ✅ Calculer le chiffre d'affaires total SEULEMENT des commandes livrées
+          totalRevenue = commandesData
+            .filter(commande => commande.status === 'DELIVERED')
+            .reduce((sum, commande) => {
+              // Calculer le total de cette commande à partir de ses items
+              const commandeTotal = (commande.items || []).reduce((itemSum: number, item: any) => {
+                const quantity = parseFloat(item.quantity) || 0;
+                const price = parseFloat(item.product?.price) || 0;
+                const itemTotal = quantity * price;
+                console.log(`💰 Item ${item.id}: ${quantity} x ${price} = ${itemTotal}`);
+                return itemSum + itemTotal;
+              }, 0);
 
-            console.log(`💰 Commande ${commande.id}: ${commandeTotal} TND (${commande.items?.length || 0} items)`);
-            return sum + commandeTotal;
-          }, 0);
+              console.log(`💰 Commande livrée ${commande.id}: ${commandeTotal} TND (${commande.items?.length || 0} items)`);
+              return sum + commandeTotal;
+            }, 0);
           console.log('💰 Chiffre d\'affaires total calculé:', totalRevenue, 'TND');
 
           // Calculer la croissance des commandes (30 derniers jours vs 30 jours précédents)
@@ -245,9 +247,9 @@ const Dashboard = () => {
             ordersGrowth = ((recentOrders - previousOrders) / previousOrders) * 100;
           }
 
-          // Calculer la croissance du chiffre d'affaires
+          // ✅ Calculer la croissance du chiffre d'affaires (SEULEMENT commandes livrées)
           const recentRevenue = commandesData
-            .filter(cmd => new Date(cmd.createdAt) >= thirtyDaysAgo)
+            .filter(cmd => new Date(cmd.createdAt) >= thirtyDaysAgo && cmd.status === 'DELIVERED')
             .reduce((sum: number, cmd: any) => {
               return sum + (cmd.items || []).reduce((itemSum: number, item: any) => {
                 const quantity = parseFloat(item.quantity) || 0;

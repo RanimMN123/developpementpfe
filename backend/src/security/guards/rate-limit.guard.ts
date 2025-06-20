@@ -84,12 +84,12 @@ export class RateLimitGuard implements CanActivate {
                  this.endpointConfigs.get(request.path) ||
                  this.defaultConfig;
 
-    // Augmenter les limites pour les applications mobiles
+    // Augmenter les limites pour les applications mobiles (mode développement)
     if (isMobileApp) {
       config = {
         ...config,
-        max: config.max * 3, // Triple la limite pour mobile
-        windowMs: config.windowMs / 2, // Réduit la fenêtre de temps
+        max: config.max * 20, // 20x la limite pour mobile (mode dev)
+        windowMs: config.windowMs / 4, // Réduit la fenêtre de temps
         message: 'Limite atteinte pour application mobile, veuillez patienter'
       };
 

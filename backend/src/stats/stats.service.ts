@@ -64,7 +64,10 @@ export class StatsService {
       }
 
       const orders = await this.prisma.order.findMany({
-        where: dateFilter,
+        where: {
+          ...dateFilter,
+          status: 'DELIVERED' // ✅ SEULEMENT les commandes livrées comptent pour les statistiques
+        },
         include: {
           items: {
             include: {

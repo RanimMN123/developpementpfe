@@ -157,10 +157,11 @@ const AgentDetailPage = () => {
         console.error('Erreur récupération clients:', error);
       }
 
-      // Calculer les statistiques selon votre structure backend
+      // ✅ Calculer les statistiques SEULEMENT des commandes livrées
       // Le UserService retourne déjà le total calculé pour chaque commande
-      const totalRevenue = commandes.reduce((sum, cmd) => sum + (cmd.total || 0), 0);
-      const averageOrderValue = commandes.length > 0 ? totalRevenue / commandes.length : 0;
+      const commandesLivrees = commandes.filter(cmd => cmd.status === 'DELIVERED');
+      const totalRevenue = commandesLivrees.reduce((sum, cmd) => sum + (cmd.total || 0), 0);
+      const averageOrderValue = commandesLivrees.length > 0 ? totalRevenue / commandesLivrees.length : 0;
 
       // Calculer les revenus mensuels des 6 derniers mois
       const monthlyRevenue = calculateMonthlyRevenue(commandes);
@@ -237,36 +238,36 @@ const AgentDetailPage = () => {
       }
     }
 
-    // Calculer les revenus par période (seulement si il y a des commandes)
+    // ✅ Calculer les revenus par période (SEULEMENT commandes livrées)
     if (commandes && commandes.length > 0) {
-      commandes.forEach(commande => {
-        let periodKey: string;
+      commandes
+        .filter(commande => commande.status === 'DELIVERED') // ✅ SEULEMENT les commandes livrées
+        .forEach(commande => {
+          let periodKey: string;
 
-        // Extraire la partie de date selon la période
-        if (!commande.createdAt) {
-          console.warn('Date manquante ignorée pour la commande:', commande.id);
-          return; // Ignorer cette commande si pas de date
-        }
+          // Extraire la partie de date selon la période
+          if (!commande.createdAt) {
+            console.warn('Date manquante ignorée pour la commande:', commande.id);
+            return; // Ignorer cette commande si pas de date
+          }
 
-        const dateStr = String(commande.createdAt);
+          const dateStr = String(commande.createdAt);
 
-        if (period === 'day') {
-          periodKey = dateStr.slice(0, 10); // YYYY-MM-DD
-        } else if (period === 'month') {
-          periodKey = dateStr.slice(0, 7); // YYYY-MM
-        } else if (period === 'year') {
-          periodKey = dateStr.slice(0, 4); // YYYY
-        } else {
-          periodKey = dateStr.slice(0, 10); // Par défaut jour
-        }
+          if (period === 'day') {
+            periodKey = dateStr.slice(0, 10); // YYYY-MM-DD
+          } else if (period === 'month') {
+            periodKey = dateStr.slice(0, 7); // YYYY-MM
+          } else if (period === 'year') {
+            periodKey = dateStr.slice(0, 4); // YYYY
+          } else {
+            periodKey = dateStr.slice(0, 10); // Par défaut jour
+          }
 
-
-
-        if (Object.prototype.hasOwnProperty.call(revenueData, periodKey)) {
-          // Le UserService retourne déjà le total calculé
-          revenueData[periodKey] += commande.total || 0;
-        }
-      });
+          if (Object.prototype.hasOwnProperty.call(revenueData, periodKey)) {
+            // Le UserService retourne déjà le total calculé
+            revenueData[periodKey] += commande.total || 0;
+          }
+        });
     }
 
     return periods.map(period => ({

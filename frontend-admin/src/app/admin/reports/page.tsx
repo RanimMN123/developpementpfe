@@ -227,21 +227,26 @@ const ReportsPage = () => {
               ordersGrowth = ((currentOrdersCount - previousOrdersCount) / previousOrdersCount) * 100;
             }
 
-            const currentRevenue = currentPeriodOrders.reduce((sum: number, cmd: any) => {
-              return sum + (cmd.items || []).reduce((itemSum: number, item: any) => {
-                const quantity = parseFloat(item.quantity) || 0;
-                const price = parseFloat(item.product?.price) || 0;
-                return itemSum + (quantity * price);
+            // ✅ SEULEMENT les commandes livrées comptent pour les revenus
+            const currentRevenue = currentPeriodOrders
+              .filter((cmd: any) => cmd.status === 'DELIVERED')
+              .reduce((sum: number, cmd: any) => {
+                return sum + (cmd.items || []).reduce((itemSum: number, item: any) => {
+                  const quantity = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.product?.price) || 0;
+                  return itemSum + (quantity * price);
+                }, 0);
               }, 0);
-            }, 0);
 
-            const previousRevenue = previousPeriodOrders.reduce((sum: number, cmd: any) => {
-              return sum + (cmd.items || []).reduce((itemSum: number, item: any) => {
-                const quantity = parseFloat(item.quantity) || 0;
-                const price = parseFloat(item.product?.price) || 0;
-                return itemSum + (quantity * price);
+            const previousRevenue = previousPeriodOrders
+              .filter((cmd: any) => cmd.status === 'DELIVERED')
+              .reduce((sum: number, cmd: any) => {
+                return sum + (cmd.items || []).reduce((itemSum: number, item: any) => {
+                  const quantity = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.product?.price) || 0;
+                  return itemSum + (quantity * price);
+                }, 0);
               }, 0);
-            }, 0);
 
             if (previousRevenue > 0) {
               revenueGrowth = ((currentRevenue - previousRevenue) / previousRevenue) * 100;
@@ -461,10 +466,14 @@ const ReportsPage = () => {
         return cmdDate === dateStr;
       });
 
-      // Calculer les vraies métriques pour cette date
-      const dayOrders = dayCommandes.length;
+      // ✅ SEULEMENT les commandes livrées comptent pour les métriques
+      const dayCommandesLivrees = dayCommandes.filter(cmd => cmd.status === 'DELIVERED');
 
-      const dayRevenue = dayCommandes.reduce((sum: number, cmd: any) => {
+      // Calculer les vraies métriques pour cette date
+      const dayOrders = dayCommandes.length; // Total des commandes (toutes)
+      const dayOrdersDelivered = dayCommandesLivrees.length; // Commandes livrées
+
+      const dayRevenue = dayCommandesLivrees.reduce((sum: number, cmd: any) => {
         return sum + (cmd.items || []).reduce((itemSum: number, item: any) => {
           const quantity = parseFloat(item.quantity) || 0;
           const price = parseFloat(item.product?.price) || 0;
@@ -472,9 +481,9 @@ const ReportsPage = () => {
         }, 0);
       }, 0);
 
-      // Compter les produits uniques vendus ce jour
+      // Compter les produits uniques vendus ce jour (SEULEMENT commandes livrées)
       const dayProductIds = new Set();
-      dayCommandes.forEach((cmd: any) => {
+      dayCommandesLivrees.forEach((cmd: any) => {
         (cmd.items || []).forEach((item: any) => {
           if (item.product?.id) {
             dayProductIds.add(item.product.id);
@@ -483,8 +492,8 @@ const ReportsPage = () => {
       });
       const dayProducts = dayProductIds.size;
 
-      // Compter les clients uniques ce jour
-      const dayClientIds = new Set(dayCommandes.map((cmd: any) => cmd.clientId).filter(Boolean));
+      // Compter les clients uniques ce jour (SEULEMENT commandes livrées)
+      const dayClientIds = new Set(dayCommandesLivrees.map((cmd: any) => cmd.clientId).filter(Boolean));
       const dayClients = dayClientIds.size;
 
       details.push({
@@ -662,27 +671,30 @@ ${topProductsText || 'Aucune donnée disponible'}
     const productStats: Record<string, { quantity: number; revenue: number; orders: number; price: number }> = {};
     let totalQuantitySold = 0;
 
-    rawData.commandes.forEach((cmd: any) => {
-      (cmd.items || []).forEach((item: any) => {
-        const productName = item.product?.name || 'Produit inconnu';
-        const quantity = parseFloat(item.quantity) || 0;
-        const price = parseFloat(item.product?.price) || 0;
+    // ✅ SEULEMENT les commandes livrées comptent pour les statistiques produits
+    rawData.commandes
+      .filter((cmd: any) => cmd.status === 'DELIVERED')
+      .forEach((cmd: any) => {
+        (cmd.items || []).forEach((item: any) => {
+          const productName = item.product?.name || 'Produit inconnu';
+          const quantity = parseFloat(item.quantity) || 0;
+          const price = parseFloat(item.product?.price) || 0;
 
-        totalQuantitySold += quantity;
+          totalQuantitySold += quantity;
 
-        if (!productStats[productName]) {
-          productStats[productName] = {
-            quantity: 0,
-            revenue: 0,
-            orders: 0,
-            price: price
-          };
-        }
-        productStats[productName].quantity += quantity;
-        productStats[productName].revenue += quantity * price;
-        productStats[productName].orders += 1;
+          if (!productStats[productName]) {
+            productStats[productName] = {
+              quantity: 0,
+              revenue: 0,
+              orders: 0,
+              price: price
+            };
+          }
+          productStats[productName].quantity += quantity;
+          productStats[productName].revenue += quantity * price;
+          productStats[productName].orders += 1;
+        });
       });
-    });
 
     const sortedByQuantity = Object.entries(productStats)
       .sort(([,a], [,b]) => b.quantity - a.quantity)
@@ -720,30 +732,33 @@ ${topProductsText || 'Aucune vente enregistrée'}
     const clientStats: Record<string, { orders: number; revenue: number; items: number }> = {};
     let totalClientsWithOrders = 0;
 
-    rawData.commandes.forEach((cmd: any) => {
-      const clientId = cmd.clientId;
-      if (!clientId) return;
+    // ✅ SEULEMENT les commandes livrées comptent pour les statistiques clients
+    rawData.commandes
+      .filter((cmd: any) => cmd.status === 'DELIVERED')
+      .forEach((cmd: any) => {
+        const clientId = cmd.clientId;
+        if (!clientId) return;
 
-      if (!clientStats[clientId]) {
-        clientStats[clientId] = {
-          orders: 0,
-          revenue: 0,
-          items: 0
-        };
-        totalClientsWithOrders++;
-      }
+        if (!clientStats[clientId]) {
+          clientStats[clientId] = {
+            orders: 0,
+            revenue: 0,
+            items: 0
+          };
+          totalClientsWithOrders++;
+        }
 
-      clientStats[clientId].orders += 1;
+        clientStats[clientId].orders += 1;
 
-      const orderRevenue = (cmd.items || []).reduce((sum: number, item: any) => {
-        const quantity = parseFloat(item.quantity) || 0;
-        const price = parseFloat(item.product?.price) || 0;
-        clientStats[clientId].items += quantity;
-        return sum + (quantity * price);
-      }, 0);
+        const orderRevenue = (cmd.items || []).reduce((sum: number, item: any) => {
+          const quantity = parseFloat(item.quantity) || 0;
+          const price = parseFloat(item.product?.price) || 0;
+          clientStats[clientId].items += quantity;
+          return sum + (quantity * price);
+        }, 0);
 
-      clientStats[clientId].revenue += orderRevenue;
-    });
+        clientStats[clientId].revenue += orderRevenue;
+      });
 
     const sortedClients = Object.entries(clientStats)
       .sort(([,a], [,b]) => b.revenue - a.revenue)
