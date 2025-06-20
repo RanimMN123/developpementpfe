@@ -39,7 +39,7 @@ RUN echo "=== DÉBUT BUILD ===" && npm run build && echo "=== FIN BUILD ==="
 RUN echo "=== CONTENU DIST ===" && ls -la dist/ && echo "=== FICHIERS DIST ===" && find dist/ -name "*.js" | head -10
 
 # Vérifier que main.js existe
-RUN test -f dist/main.js && echo "✅ main.js trouvé" || (echo "❌ main.js manquant" && ls -la dist/)
+RUN test -f dist/src/main.js && echo "✅ main.js trouvé" || (echo "❌ main.js manquant" && ls -la dist/)
 
 # Créer les dossiers nécessaires
 RUN mkdir -p /app/public/images
@@ -53,4 +53,4 @@ ENV PORT=3000
 ENV DATABASE_URL="postgresql://postgres:password@postgres:5432/admin_db?schema=public"
 
 # Commande de démarrage - utiliser node directement
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
