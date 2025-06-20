@@ -7,6 +7,9 @@ WORKDIR /app
 # Copier package.json
 COPY package*.json ./
 
+# Générer Prisma
+RUN npx prisma generate
+
 COPY prisma ./prisma
 
 # Installer toutes les dépendances (dev + prod pour le build)
@@ -14,9 +17,6 @@ RUN npm install
 
 # Copier tout le code
 COPY . .
-
-# Générer Prisma
-RUN npx prisma generate
 
 # Build l'application
 RUN npm run build
