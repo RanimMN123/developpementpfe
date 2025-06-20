@@ -32,4 +32,4 @@ RUN mkdir -p public/images
 EXPOSE 3000
 
 # Commande simple
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
