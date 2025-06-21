@@ -137,8 +137,8 @@ export default function CommandesPage() {
 
       // Récupérer les commandes et les planifications en parallèle
       const [ordersRes, planningsRes] = await Promise.allSettled([
-        fetch('http://localhost:3000/orders'),
-        fetch('http://localhost:3000/delivery-planning', {
+        fetch(process.env.NEXT_PUBLIC_API_URL + '/orders'),
+        fetch(process.env.NEXT_PUBLIC_API_URL + '/delivery-planning', {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
       ]);
@@ -179,7 +179,7 @@ export default function CommandesPage() {
   // Fonction pour récupérer la liste des produits disponibles
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:3000/admin/products');
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/admin/products');
       if (!response.ok) {
         throw new Error('Erreur lors de la récupération des produits');
       }
@@ -195,7 +195,7 @@ export default function CommandesPage() {
   const fetchClients = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/clients', {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/clients', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       if (!response.ok) {
@@ -213,7 +213,7 @@ export default function CommandesPage() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/users', {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/users', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       if (!response.ok) {
@@ -276,7 +276,7 @@ export default function CommandesPage() {
     setStatusUpdating(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/orders/${commandeId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${commandeId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -416,7 +416,7 @@ export default function CommandesPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/orders', {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

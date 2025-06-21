@@ -8,7 +8,7 @@ import React from 'react';
 
 // Configuration de base pour les images
 const IMAGE_CONFIG = {
-  BASE_URL: 'http://localhost:3000', // URL du backend
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', // URL du backend
   DEFAULT_IMAGE: 'https://via.placeholder.com/300x200/e5e7eb/6b7280?text=Image+non+disponible', // Image par défaut
   PLACEHOLDER: 'https://via.placeholder.com/300x200/f3f4f6/9ca3af?text=Chargement...', // Placeholder
 };

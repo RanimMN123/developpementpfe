@@ -164,13 +164,13 @@ const ReportsPage = () => {
 
       // Récupérer les vraies données depuis l'API
       const [commandesRes, produitsRes, clientsRes] = await Promise.allSettled([
-        fetch('http://localhost:3000/orders', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        fetch('http://localhost:3000/products/products', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/products`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        fetch('http://localhost:3000/api/clients', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);

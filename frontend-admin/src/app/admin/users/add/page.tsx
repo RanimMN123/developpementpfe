@@ -90,7 +90,7 @@ export default function AddUserPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:3000/users', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

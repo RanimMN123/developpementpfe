@@ -91,7 +91,7 @@ const AddCategoryModal: React.FC<ModalProps> = ({ isOpen, onClose, onCategoryAdd
         formData.append('image', imageFile);
       }
 
-      const response = await fetch('http://localhost:3000/categories', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
         method: 'POST',
         body: formData,
       });
@@ -329,7 +329,7 @@ const EditCategoryModal: React.FC<ModalProps> = ({ isOpen, onClose, onCategoryUp
         formData.append('removeImage', 'true');
       }
 
-      const response = await fetch(`http://localhost:3000/categories/${category.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${category.id}`, {
         method: 'PUT',
         body: formData,
       });
@@ -363,7 +363,7 @@ const EditCategoryModal: React.FC<ModalProps> = ({ isOpen, onClose, onCategoryUp
 
   const hasNewImage = imagePreview;
   const hasCurrentImage = currentImage && !removeCurrentImage;
-  const displayImage = hasNewImage ? imagePreview : (hasCurrentImage ? `http://localhost:3000/${currentImage}` : null);
+  const displayImage = hasNewImage ? imagePreview : (hasCurrentImage ? `${process.env.NEXT_PUBLIC_API_URL}/${currentImage}` : null);
 
   return (
     <div className="fixed inset-0 bg-transparent h-full w-full z-50 flex items-start justify-end backdrop-blur-md transition-all duration-300 pt-4 pr-4">
@@ -661,7 +661,7 @@ const CategoriesPage = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/categories');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
       if (!response.ok) throw new Error('Erreur lors du chargement des catégories');
 
       const data = await response.json();
@@ -736,7 +736,7 @@ const CategoriesPage = () => {
     if (!categoryToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/categories/${categoryToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${categoryToDelete.id}`, {
         method: 'DELETE'
       });
 

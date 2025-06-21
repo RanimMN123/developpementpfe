@@ -183,15 +183,15 @@ const Dashboard = () => {
       // Utilisons les endpoints existants et calculons les statistiques
       const [commandesRes, produitsRes, clientsRes] = await Promise.allSettled([
         // Liste des commandes
-        fetch('http://localhost:3000/orders', {
+        fetch(  `${process.env.NEXT_PUBLIC_API_URL}/orders`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         // Liste des produits
-        fetch('http://localhost:3000/products/products', {
+        fetch(  `${process.env.NEXT_PUBLIC_API_URL}/products/products`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         // Liste des clients
-        fetch('http://localhost:3000/api/clients', {
+        fetch(  `${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);

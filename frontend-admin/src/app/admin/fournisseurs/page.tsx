@@ -340,7 +340,7 @@ export default function FournisseursPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:3000/api/fournisseurs', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs`, {
         headers,
       });
 
@@ -407,8 +407,8 @@ export default function FournisseursPage() {
       }
 
       const url = selectedFournisseur
-        ? `http://localhost:3000/api/fournisseurs/${selectedFournisseur.id}`
-        : 'http://localhost:3000/api/fournisseurs';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs/${selectedFournisseur.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs`;
 
       const method = selectedFournisseur ? 'PATCH' : 'POST';
 
@@ -451,7 +451,7 @@ export default function FournisseursPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`http://localhost:3000/api/fournisseurs/${fournisseurToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs/${fournisseurToDelete.id}`, {
         method: 'DELETE',
         headers,
       });

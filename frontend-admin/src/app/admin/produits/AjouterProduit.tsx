@@ -65,7 +65,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onProductA
     if (!isOpen) return;
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:3000/categories');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
         if (!response.ok) throw new Error('Erreur lors du chargement des catégories');
         const data = await response.json();
         if (Array.isArray(data.data)) {
@@ -110,8 +110,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onProductA
     try {
       const url =
         mode === 'create'
-          ? 'http://localhost:3000/admin/products'
-          : `http://localhost:3000/admin/products/${product?.id}`;
+          ? `${process.env.NEXT_PUBLIC_API_URL}/admin/products`
+          : `${process.env.NEXT_PUBLIC_API_URL}/admin/products/${product?.id}`;
       const method = mode === 'create' ? 'POST' : 'PUT';
 
       const response = await fetch(url, {

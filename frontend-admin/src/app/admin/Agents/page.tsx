@@ -69,7 +69,7 @@ const AgentsPage = () => {
       }
 
       // Récupérer les users du backend
-      const usersResponse = await fetch('http://localhost:3000/users', {
+      const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         headers,
       });
 
@@ -85,8 +85,8 @@ const AgentsPage = () => {
         usersData.map(async (user: { id: number; name?: string; nom?: string; prenom?: string; email: string; telephone?: string; adresse?: string; createdAt?: string; role?: string }) => {
           // Récupérer les statistiques pour chaque agent avec les bons endpoints selon votre backend
           const [commandesRes, clientsRes] = await Promise.allSettled([
-            fetch(`http://localhost:3000/users/${user.id}/orders`, { headers }),
-            fetch(`http://localhost:3000/users/${user.id}/clients`, { headers })
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}/orders`, { headers }),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}/clients`, { headers })
           ]);
 
           let totalCommandes = 0;

@@ -124,7 +124,7 @@ const AjouterProduitModal: React.FC<AjouterProduitModalProps> = ({ isOpen, onClo
 
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:3000/categories');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
         if (!response.ok) throw new Error('Erreur lors du chargement des catégories');
 
         const data = await response.json();
@@ -216,12 +216,12 @@ const AjouterProduitModal: React.FC<AjouterProduitModalProps> = ({ isOpen, onClo
     }
 
     try {
-      let url = 'http://localhost:3000/products';
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/products`;
       let method = 'POST';
 
       // Si on est en mode édition, on fait une requête PUT
       if (editMode && produit) {
-        url = `http://localhost:3000/products/${produit.id}`;
+        url = `${process.env.NEXT_PUBLIC_API_URL}/products/${produit.id}`;
         method = 'PUT';
       }
 
@@ -521,13 +521,13 @@ const AdminProduits = () => {
     setIsLoading(true);
     try {
       // Charger les produits
-      const produitsRes = await fetch('http://localhost:3000/admin/products');
+      const produitsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/products`);
       if (!produitsRes.ok) throw new Error('Erreur lors du chargement des produits');
       const produitsData = await produitsRes.json();
       setProduits(produitsData);
 
       // Charger les catégories
-      const categoriesRes = await fetch('http://localhost:3000/categories');
+      const categoriesRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
       if (!categoriesRes.ok) throw new Error('Erreur lors du chargement des catégories');
       const categoriesData = await categoriesRes.json();
 
@@ -597,7 +597,7 @@ const AdminProduits = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`http://localhost:3000/admin/product/${currentProduit!.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/product/${currentProduit!.id}`, {
         method: 'DELETE',
       });
 
