@@ -10,6 +10,9 @@ COPY package*.json ./
 COPY prisma ./prisma
 
 # Générer Prisma
+#RUN npx prisma generate
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
 RUN npx prisma generate
 
 # Installer toutes les dépendances (dev + prod pour le build)
