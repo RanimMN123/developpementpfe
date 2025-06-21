@@ -336,37 +336,92 @@ export class OrderService {
   }
 
 
-  async getDailyRevenue() {
-    const orders = await this.prisma.order.findMany({
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
+  async getDailyRevenue(range?: string) {
+    try {
+      // Déterminer la période selon le paramètre range
+      let dateFilter = {};
+      const now = new Date();
 
-    const revenueByDay: Record<string, number> = {};
-
-    for (const order of orders) {
-      const date = new Date(order.createdAt).toISOString().split('T')[0]; // yyyy-mm-dd
-
-      const total = order.items.reduce((sum, item) => {
-        return sum + item.quantity * item.product.price;
-      }, 0);
-
-      if (!revenueByDay[date]) {
-        revenueByDay[date] = 0;
+      switch (range) {
+        case 'today':
+          const startOfDay = new Date(now);
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date(now);
+          endOfDay.setHours(23, 59, 59, 999);
+          dateFilter = {
+            createdAt: {
+              gte: startOfDay,
+              lte: endOfDay,
+            }
+          };
+          break;
+        case 'week':
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - 7);
+          dateFilter = {
+            createdAt: {
+              gte: startOfWeek,
+            }
+          };
+          break;
+        case 'month':
+          const startOfMonth = new Date(now);
+          startOfMonth.setDate(now.getDate() - 30);
+          dateFilter = {
+            createdAt: {
+              gte: startOfMonth,
+            }
+          };
+          break;
+        default:
+          // Par défaut, derniers 30 jours
+          const thirtyDaysAgo = new Date(now);
+          thirtyDaysAgo.setDate(now.getDate() - 30);
+          dateFilter = {
+            createdAt: {
+              gte: thirtyDaysAgo,
+            }
+          };
       }
 
-      revenueByDay[date] += total;
-    }
+      const orders = await this.prisma.order.findMany({
+        where: {
+          ...dateFilter,
+          status: 'DELIVERED' // ✅ SEULEMENT les commandes livrées comptent pour les revenus
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
 
-    return Object.entries(revenueByDay).map(([date, total]) => ({
-      date,
-      total: parseFloat(total.toFixed(2)),
-    }));
+      const revenueByDay: Record<string, number> = {};
+
+      for (const order of orders) {
+        const date = new Date(order.createdAt).toISOString().split('T')[0]; // yyyy-mm-dd
+
+        const total = order.items.reduce((sum, item) => {
+          return sum + item.quantity * item.product.price;
+        }, 0);
+
+        if (!revenueByDay[date]) {
+          revenueByDay[date] = 0;
+        }
+
+        revenueByDay[date] += total;
+      }
+
+      return Object.entries(revenueByDay).map(([date, total]) => ({
+        date,
+        total: parseFloat(total.toFixed(2)),
+      }));
+    } catch (error) {
+      console.error('Erreur dans getDailyRevenue:', error);
+      return [];
+    }
   }
 
   

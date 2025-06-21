@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import PageLayout from '../components/PageLayout';
 import { MapPin, Calendar, Filter, Search, RefreshCw, User, MapPinIcon } from 'lucide-react';
 import ScrollToTop from '../components/ScrollToTop';
+import { apiUtils } from '../../../utils/apiUtils';
 import './routes.css';
 import '../produits/animations.css';
 
@@ -96,58 +97,26 @@ export default function RoutesPage() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Token d\'authentification manquant');
-        return;
-      }
-
-      // Récupérer les commandes, clients, utilisateurs et planifications en parallèle
-      const [ordersRes, clientsRes, usersRes, planningsRes] = await Promise.allSettled([
-        fetch('http://localhost:3000/orders', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('http://localhost:3000/api/clients', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('http://localhost:3000/users', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('http://localhost:3000/delivery-planning', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      // Récupérer les données en parallèle avec apiUtils
+      const [ordersData, clientsData, usersData, planningsData] = await Promise.allSettled([
+        apiUtils.get('/orders'),
+        apiUtils.get('/api/clients'),
+        apiUtils.get('/users'),
+        apiUtils.get('/delivery-planning')
       ]);
 
-      // Traiter les commandes
-      let ordersData = [];
-      if (ordersRes.status === 'fulfilled' && ordersRes.value.ok) {
-        ordersData = await ordersRes.value.json();
-      }
+      // Traiter les résultats
+      const orders = ordersData.status === 'fulfilled' ? ordersData.value : [];
+      const clients = clientsData.status === 'fulfilled' ? clientsData.value : [];
+      const users = usersData.status === 'fulfilled' ? usersData.value : [];
+      const plannings = planningsData.status === 'fulfilled' ?
+        (planningsData.value.data || planningsData.value || []) : [];
 
-      // Traiter les clients
-      let clientsData = [];
-      if (clientsRes.status === 'fulfilled' && clientsRes.value.ok) {
-        clientsData = await clientsRes.value.json();
-      }
-
-      // Traiter les utilisateurs
-      let usersData = [];
-      if (usersRes.status === 'fulfilled' && usersRes.value.ok) {
-        usersData = await usersRes.value.json();
-      }
-
-      // Traiter les planifications
-      let planningsData = [];
-      if (planningsRes.status === 'fulfilled' && planningsRes.value.ok) {
-        const planningsResponse = await planningsRes.value.json();
-        planningsData = planningsResponse.data || planningsResponse || [];
-      }
-
-      console.log('📊 Données récupérées:', { ordersData, clientsData, usersData, planningsData });
+      console.log('📊 Données récupérées:', { orders, clients, users, plannings });
 
       // Associer les planifications aux commandes
-      const ordersWithPlannings = Array.isArray(ordersData) ? ordersData.map(order => {
-        const planning = planningsData.find((p: DeliveryPlanning) => p.orderId === order.id);
+      const ordersWithPlannings = Array.isArray(orders) ? orders.map(order => {
+        const planning = plannings.find((p: DeliveryPlanning) => p.orderId === order.id);
         return {
           ...order,
           deliveryPlanning: planning
@@ -155,9 +124,9 @@ export default function RoutesPage() {
       }) : [];
 
       setOrders(ordersWithPlannings);
-      setClients(Array.isArray(clientsData) ? clientsData : []);
-      setUsers(Array.isArray(usersData) ? usersData : []);
-      setDeliveryPlannings(Array.isArray(planningsData) ? planningsData : []);
+      setClients(Array.isArray(clients) ? clients : []);
+      setUsers(Array.isArray(users) ? users : []);
+      setDeliveryPlannings(Array.isArray(plannings) ? plannings : []);
 
     } catch (err) {
       console.error('Erreur lors de la récupération des données:', err);
@@ -177,15 +146,10 @@ export default function RoutesPage() {
     return users.find(user => user.id === userId);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // Affichage des dates comme elles viennent de la base
+  const formatDate = (dateString: any) => {
+    if (!dateString) return 'Date non disponible';
+    return String(dateString); // Convertir en string pour l'affichage
   };
 
   const getStatusBadge = (status: string) => {
@@ -306,12 +270,6 @@ export default function RoutesPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Token d\'authentification manquant');
-        return;
-      }
-
       // Préparer les données de planification
       const planningData = {
         orderId: selectedOrder.id,
@@ -325,21 +283,7 @@ export default function RoutesPage() {
       console.log('📅 Envoi de la planification:', planningData);
 
       // Appel API pour sauvegarder la planification
-      const response = await fetch('http://localhost:3000/delivery-planning', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(planningData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la sauvegarde de la planification');
-      }
-
-      const result = await response.json();
+      const result = await apiUtils.post('/delivery-planning', planningData);
       console.log('✅ Planification sauvegardée:', result);
 
       alert(`✅ Livraison planifiée avec succès pour le ${deliveryDate} entre ${deliveryTimeMin} et ${deliveryTimeMax}`);

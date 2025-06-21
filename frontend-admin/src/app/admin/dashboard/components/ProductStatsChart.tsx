@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import { apiUtils } from '../../../../utils/apiUtils';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, Area, AreaChart, BarChart, Bar, ComposedChart, PieChart, Pie, Cell
@@ -43,20 +43,10 @@ const ProductStatsChart = () => {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Aucun token d\'authentification trouvé');
-        setIsLoading(false);
-        return;
-      }
-
-      const res = await axios.get(`http://localhost:3000/api/admin/produits-stats?range=${timeRange}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
+      const data = await apiUtils.get(`/api/admin/produits-stats?range=${timeRange}`);
 
       // Simuler des données additionnelles si nécessaire (prix moyen, vues)
-      const formattedData = res.data.map((item: ProductStat) => ({
+      const formattedData = data.map((item: ProductStat) => ({
         ...item,
         avgPrice: item.avgPrice || Math.floor(Math.random() * 100) + 20,
         totalViews: item.totalViews || Math.floor(Math.random() * 200) + 50,

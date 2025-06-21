@@ -1,5 +1,5 @@
 // backend/src/stats/stats.controller.ts
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { StatsService } from './stats.service';
 
 @Controller('api/admin')
@@ -12,17 +12,17 @@ export class StatsController {
   }
 
   @Get('commandes-stats')
-  getCommandesStats() {
-    return this.statsService.getCommandesStats();
+  getCommandesStats(@Query('range') range?: string) {
+    return this.statsService.getCommandesStats(range);
   }
 
   @Get('produits-stats')
-  getProduitsStats() {
-    return this.statsService.getProduitsStats();
+  getProduitsStats(@Query('range') range?: string) {
+    return this.statsService.getProduitsStats(range);
   }
 
   @Get('clients-stats')
-  async getClientsStats() {
-    return this.statsService.getClientsStats();
+  async getClientsStats(@Query('range') range?: string) {
+    return this.statsService.getClientsStats(range);
   }
 }

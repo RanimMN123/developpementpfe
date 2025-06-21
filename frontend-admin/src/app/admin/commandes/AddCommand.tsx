@@ -161,7 +161,7 @@ const AjouterCommandeModal: React.FC<AjouterCommandeModalProps> = ({
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:3000/orders', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

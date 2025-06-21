@@ -19,3 +19,16 @@ yarn-error.log
 # Ignore les dossiers ou fichiers de cache
 .cache
 .DS_Store
+
+# Ignore les fichiers de build (seront générés)
+dist
+build
+
+# Ignore les fichiers Docker
+Dockerfile*
+docker-compose*.yml
+
+# Ignore les tests
+coverage
+*.test.js
+*.spec.js

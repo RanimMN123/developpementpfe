@@ -8,6 +8,7 @@ import {
   Patch,
   UseGuards,
   Request,
+  Req,
   UnauthorizedException,
   ParseIntPipe,
   HttpStatus,
@@ -20,6 +21,7 @@ import { UpdateOrderStatusDto } from './dto/updateorder-status.dto';
 import { CreateClientDto } from './dto/create-client.dto';
 import { AdminAuthDto } from './dto/admin-auth.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { SkipCsrf } from '../security/guards/csrf.guard';
 import { Request as ExpressRequest } from 'express';
 
 @Controller('admin')
@@ -72,6 +74,19 @@ export class AdminController {
     }
   }
 
+  // Route pour récupérer tous les clients (admin seulement)
+  @Get('clients')
+  @UseGuards(JwtAuthGuard)
+  @SkipCsrf()
+  async getAllClients() {
+    try {
+      const clients = await this.adminService.getAllClients();
+      return clients;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // ======== PRODUITS ========
 
   // Créer un produit
@@ -82,11 +97,51 @@ export class AdminController {
     return result;
   }
 
-  // Récupérer tous les produits
+  // Récupérer tous les produits (avec URLs d'images corrigées pour mobile)
   @Get('products')
-  async getProducts() {
+  @SkipCsrf()
+  async getProducts(@Req() request: any) {
     const products = await this.adminService.getProducts();
-    return products;
+
+    // Construire l'URL de base à partir de la requête (avec IP fixe pour mobile)
+    const protocol = request.protocol || 'http';
+    const requestHost = request.get('host');
+
+    // Forcer l'IP correcte pour les requêtes mobiles
+    let host = requestHost || 'localhost:3000';
+
+    // Si la requête vient du mobile (détection par User-Agent ou autre), utiliser l'IP fixe
+    const userAgent = request.get('user-agent') || '';
+    const isMobileRequest = userAgent.includes('Expo') || userAgent.includes('ReactNative') ||
+                           requestHost?.includes('192.168') || requestHost?.includes('10.0') ||
+                           requestHost?.includes('172.16');
+
+    if (isMobileRequest) {
+      host = '192.168.100.187:3000'; // IP fixe pour mobile actuelle
+      console.log('📱 Requête mobile détectée sur /admin/products, utilisation IP fixe:', host);
+    }
+
+    const baseUrl = `${protocol}://${host}`;
+    console.log('🌐 Base URL pour produits:', baseUrl);
+
+    // Transformer les produits avec URLs complètes
+    const transformedProducts = products.map(product => {
+      let productImageUrl: string | null = null;
+      if (product.imageUrl) {
+        if (product.imageUrl.startsWith('http')) {
+          productImageUrl = product.imageUrl;
+        } else {
+          productImageUrl = `${baseUrl}${product.imageUrl}`;
+        }
+      }
+
+      return {
+        ...product,
+        imageUrl: productImageUrl // URL complète
+      };
+    });
+
+    return transformedProducts;
   }
 
   // Route pour récupérer les statistiques du dashboard

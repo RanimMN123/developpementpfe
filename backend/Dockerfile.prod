@@ -1,0 +1,64 @@
+# Dockerfile de production pour le backend
+FROM node:18-alpine AS builder
+
+# Installer les dépendances système nécessaires
+RUN apk add --no-cache python3 make g++
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Installer les dépendances
+RUN npm ci --only=production && npm cache clean --force
+
+# Copier le code source
+COPY . .
+
+# Générer le client Prisma
+RUN npx prisma generate
+
+# Construire l'application
+RUN npm run build
+
+# Stage de production
+FROM node:18-alpine AS production
+
+# Installer dumb-init pour une gestion propre des signaux
+RUN apk add --no-cache dumb-init
+
+# Créer un utilisateur non-root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers nécessaires depuis le builder
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+
+# Créer le dossier pour les images
+RUN mkdir -p /app/public/images && chown -R nestjs:nodejs /app/public
+
+# Variables d'environnement de production
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Exposer le port
+EXPOSE 3000
+
+# Changer vers l'utilisateur non-root
+USER nestjs
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Commande de démarrage avec dumb-init
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/main.js"]

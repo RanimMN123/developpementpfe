@@ -17,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { CategoryService } from './category.service';
+import { SkipCsrf } from '../security/guards/csrf.guard';
 
 @Controller('categories')
 export class CategoryController {
@@ -59,6 +60,7 @@ export class CategoryController {
 
   // Obtenir toutes les catégories
   @Get()
+  @SkipCsrf()
   async getCategories() {
     const categories = await this.categoryService.getCategories();
     return {

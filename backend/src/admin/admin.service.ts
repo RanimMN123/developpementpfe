@@ -23,6 +23,22 @@ export class AdminService {
       },
     });
   }
+
+  // Méthode pour récupérer tous les clients (admin seulement)
+  async getAllClients() {
+    return this.prisma.client.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
   async findByEmail(email: string) {
     return this.prisma.admin.findUnique({ where: { email } });
   }

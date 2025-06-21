@@ -84,7 +84,7 @@ const ClientStatsChart = () => {
         return;
       }
 
-      const res = await axios.get(`http://localhost:3000/api/admin/clients-stats?range=${timeRange}`, {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/clients-stats?range=${timeRange}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

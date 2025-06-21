@@ -145,7 +145,10 @@ async getClientsByUser(userId: number) {
   // Pour calculer le revenu total d’un utilisateur
 async getUserRevenue(userId: number) {
   const orders = await this.prisma.order.findMany({
-    where: { client: { userId } },
+    where: {
+      client: { userId },
+      status: 'DELIVERED' // ✅ SEULEMENT les commandes livrées comptent pour le revenu
+    },
     include: { items: { include: { product: true } } },
   });
 
@@ -154,6 +157,7 @@ async getUserRevenue(userId: number) {
     return sum + total;
   }, 0);
 
+  console.log(`💰 Revenu utilisateur ${userId}: ${totalRevenue} TND (${orders.length} commandes livrées)`);
   return { totalRevenue };
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import { apiUtils } from '../../../../utils/apiUtils';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, Area, AreaChart, BarChart, Bar, ComposedChart
@@ -41,20 +41,9 @@ const DailyRevenueChart = () => {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Aucun token d\'authentification trouvé');
-        setIsLoading(false);
-        return;
-      }
+      const data = await apiUtils.get(`/orders/daily-revenue?range=${timeRange}`);
 
-      const res = await axios.get(`http://localhost:3000/orders/daily-revenue?range=${timeRange}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const formattedData = res.data.map((item: RevenueData) => ({
+      const formattedData = data.map((item: RevenueData) => ({
         ...item,
         formattedDate: formatDate(item.date)
       }));

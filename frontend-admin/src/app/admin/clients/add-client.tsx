@@ -125,7 +125,7 @@ const AjouterClientModal: React.FC<AjouterClientModalProps> = ({ isOpen, onClose
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/clients', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -395,7 +395,7 @@ const ModifierClientModal: React.FC<ModifierClientModalProps> = ({ isOpen, onClo
     setSuccess('');
 
     try {
-      const response = await fetch(`http://localhost:3000/api/clients/${client.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/clients/${client.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -651,7 +651,7 @@ const AdminClients: React.FC = () => {
   const fetchClients = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/clients');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`);
       if (!response.ok) throw new Error('Erreur lors du chargement des clients');
       
       const data = await response.json();
@@ -672,7 +672,7 @@ const AdminClients: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/users');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`);
       if (!response.ok) throw new Error('Erreur lors du chargement des utilisateurs');
       
       const data = await response.json();
@@ -701,7 +701,7 @@ const AdminClients: React.FC = () => {
     if (!clientToDelete) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/clients/${clientToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/clients/${clientToDelete.id}`, {
         method: 'DELETE'
       });
       

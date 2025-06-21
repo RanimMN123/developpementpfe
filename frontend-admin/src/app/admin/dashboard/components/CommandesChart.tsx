@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import { apiUtils } from '../../../../utils/apiUtils';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, Area, AreaChart, BarChart, Bar, ComposedChart, PieChart, Pie, Cell
@@ -43,21 +43,10 @@ const CommandesChart = () => {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Aucun token d\'authentification trouvé');
-        setIsLoading(false);
-        return;
-      }
-
-      const res = await axios.get(`http://localhost:3000/api/admin/commandes-stats?range=${timeRange}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const data = await apiUtils.get(`/api/admin/commandes-stats?range=${timeRange}`);
 
       // Simuler des données de montant si elles n'existent pas dans l'API
-      const formattedData = res.data.map((item: CommandeStat) => ({
+      const formattedData = data.map((item: CommandeStat) => ({
         ...item,
         // Si l'API ne renvoie pas de montant, on en simule un basé sur le nombre de commandes
         amount: item.amount || item.count * Math.floor(Math.random() * 50) + 30,

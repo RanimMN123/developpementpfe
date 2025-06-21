@@ -59,7 +59,7 @@ const AjouterCategorieModal: React.FC<AjouterCategorieModalProps> = ({ isOpen, o
     };
 
     try {
-      const response = await fetch('http://localhost:3000/categories', {
+      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,7 +208,7 @@ const ModifierCategorieModal: React.FC<ModifierCategorieModalProps> = ({ isOpen,
     };
 
     try {
-      const response = await fetch(`http://localhost:3000/categories/${category.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${category.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -388,7 +388,7 @@ const AdminCategories: React.FC = () => {
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/categories');
+      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/categories');
       if (!response.ok) throw new Error('Erreur lors du chargement des catégories');
       
       const data = await response.json();
@@ -430,7 +430,7 @@ const AdminCategories: React.FC = () => {
     if (!categoryToDelete) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/categories/${categoryToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${categoryToDelete.id}`, {
         method: 'DELETE'
       });
       

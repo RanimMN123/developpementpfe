@@ -359,7 +359,7 @@ export default function UsersPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:3000/users', {
+      const response = await fetch('/users', {
         headers,
       });
 
@@ -422,8 +422,8 @@ export default function UsersPage() {
       }
 
       const url = selectedUser
-        ? `http://localhost:3000/users/${selectedUser.id}`
-        : 'http://localhost:3000/users';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/users/${selectedUser.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/users`;
 
       const method = selectedUser ? 'PUT' : 'POST';
 
@@ -479,7 +479,7 @@ export default function UsersPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`http://localhost:3000/users/${userToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers,
       });

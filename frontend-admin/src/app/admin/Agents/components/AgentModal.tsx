@@ -28,20 +28,29 @@ const AgentModal: React.FC<AgentModalProps> = ({
     adresse: '',
     dateCreation: new Date().toISOString(),
     statut: 'actif',
-    role: 'Agent Commercial'
+    role: 'agent'
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // Rôles disponibles
+  // Rôles disponibles (conformes à la validation backend : lettres et underscores seulement)
   const availableRoles = [
-    'Agent Commercial',
-    'Superviseur',
-    'Manager',
-    'Administrateur',
-    'Responsable Ventes'
+    'agent',
+    'superviseur',
+    'manager',
+    'administrateur',
+    'commercial'
   ];
+
+  // Labels d'affichage pour les rôles
+  const roleLabels: Record<string, string> = {
+    'agent': 'Agent Commercial',
+    'superviseur': 'Superviseur',
+    'manager': 'Manager',
+    'administrateur': 'Administrateur',
+    'commercial': 'Commercial'
+  };
 
   // Statuts disponibles
   const availableStatuts = [
@@ -62,7 +71,7 @@ const AgentModal: React.FC<AgentModalProps> = ({
         adresse: agent.adresse || '',
         dateCreation: agent.dateCreation || new Date().toISOString(),
         statut: agent.statut || 'actif',
-        role: agent.role || 'Agent Commercial'
+        role: agent.role || 'agent'
       });
     } else {
       setFormData({
@@ -120,8 +129,12 @@ const AgentModal: React.FC<AgentModalProps> = ({
     // Validation du mot de passe (seulement en mode création)
     if (!agent && !formData.password) {
       newErrors.password = 'Le mot de passe est requis';
-    } else if (formData.password && formData.password.length < 6) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    } else if (formData.password) {
+      // Validation stricte selon le backend : 8 caractères minimum avec majuscule, minuscule, chiffre et caractère spécial
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères avec une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&)';
+      }
     }
 
     // Validation du téléphone (optionnel mais format si fourni)
@@ -169,7 +182,7 @@ const AgentModal: React.FC<AgentModalProps> = ({
       adresse: '',
       dateCreation: new Date().toISOString(),
       statut: 'actif',
-      role: 'Agent Commercial'
+      role: 'agent'
     });
     setErrors({});
     setShowPassword(false);
@@ -277,6 +290,7 @@ const AgentModal: React.FC<AgentModalProps> = ({
                 <label htmlFor="password" className="block text-xs font-medium text-gray-700">
                   Mot de passe {!agent && '*'}
                   {agent && <span className="text-gray-500 text-xs">(laisser vide pour ne pas modifier)</span>}
+                  {!agent && <span className="text-gray-500 text-xs"> - 8 caractères min avec majuscule, minuscule, chiffre et @$!%*?&</span>}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -291,7 +305,7 @@ const AgentModal: React.FC<AgentModalProps> = ({
                     className={`pl-7 pr-9 py-1.5 w-full text-sm border ${
                       errors.password ? 'border-red-500' : 'border-gray-300'
                     } rounded-md focus:ring-1 focus:ring-blue-500 focus:border-transparent`}
-                    placeholder={agent ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
+                    placeholder={agent ? 'Nouveau mot de passe (optionnel)' : 'Min 8 caractères: Aa1@'}
                   />
                   <button
                     type="button"
@@ -370,7 +384,7 @@ const AgentModal: React.FC<AgentModalProps> = ({
                     >
                       {availableRoles.map((role) => (
                         <option key={role} value={role}>
-                          {role}
+                          {roleLabels[role] || role}
                         </option>
                       ))}
                     </select>

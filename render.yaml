@@ -1,0 +1,54 @@
+# Configuration Render.com pour déploiement gratuit
+services:
+  # Base de données PostgreSQL
+  - type: pserv
+    name: ranouma-postgres
+    env: docker
+    plan: free
+    dockerfilePath: ./postgres/Dockerfile
+    envVars:
+      - key: POSTGRES_DB
+        value: adminapp
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # Backend NestJS
+  - type: web
+    name: ranouma-backend
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile.railway
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ranouma-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health
+    buildCommand: npm run build
+    startCommand: npm run start:prod
+
+  # Frontend React
+  - type: web
+    name: ranouma-frontend
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend-admin/Dockerfile.railway
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ranouma-backend
+          property: host
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    healthCheckPath: /health
