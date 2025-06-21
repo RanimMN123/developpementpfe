@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:Azerty123*@localhost:5432/adminapp?schema=public"
+  url      = "postgresql://postgres:0000@postgres:5432/ranimdb"
 }
 
 // ===================
