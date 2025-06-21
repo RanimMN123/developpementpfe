@@ -16,7 +16,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
       args:
         DATABASE_URL: postgresql://postgres:0000@postgres:5432/ranimdb
     container_name: nest_backend
