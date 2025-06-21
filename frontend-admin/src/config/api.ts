@@ -10,7 +10,7 @@ const isDocker = process.env.NEXT_PUBLIC_API_URL?.includes('backend:');
 // Configuration de base
 export const API_CONFIG = {
   // URL du backend selon l'environnement
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL,
   
   // Timeout pour les requêtes
   TIMEOUT: 30000,
