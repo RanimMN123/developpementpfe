@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:15
@@ -11,6 +13,16 @@ services:
       POSTGRES_DB: ranimdb
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: nest_backend
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:0000@postgres:5432/ranimdb
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:

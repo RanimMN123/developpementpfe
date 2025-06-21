@@ -4,8 +4,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:0000@postgres:5432/ranimdb"
+  url      = env("DATABASE_URL")
 }
+
 
 // ===================
 // ENUMS
