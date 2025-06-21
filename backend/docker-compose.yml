@@ -13,6 +13,12 @@ services:
       POSTGRES_DB: ranimdb
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ranimdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   backend:
     build:
@@ -20,12 +26,18 @@ services:
       args:
         DATABASE_URL: postgresql://postgres:0000@postgres:5432/ranimdb
     container_name: nest_backend
+    restart: always
     ports:
       - '3000:3000'
     environment:
       - DATABASE_URL=postgresql://postgres:0000@postgres:5432/ranimdb
+      - NODE_ENV=production
+      - PORT=3000
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
 
 volumes:
   postgres_data:
