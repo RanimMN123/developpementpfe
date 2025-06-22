@@ -82,7 +82,8 @@ async function bootstrap() {
       'http://192.168.100.44:3000',
       'http://192.168.100.228:3000',
       'http://192.168.1.44:3000',
-      'http://192.168.0.44:3000'
+      'http://192.168.0.44:3000',
+      'http://127.0.0.1:8081',
     ];
 
     const isAllowedOrigin = (origin: string) => {
