@@ -62,19 +62,21 @@ export class ProductController {
     // Garder l'ancien système ET ajouter Cloudinary
     const localImageUrl = file ? `/public/images/${file.filename}` : null;
 
-    // Essayer d'uploader vers Cloudinary (sans casser si ça échoue)
+    // Essayer d'uploader vers Cloudinary
     let cloudinaryUrl: string | null = null;
     if (file) {
       try {
         cloudinaryUrl = await this.cloudinaryService.uploadImage(file, 'products');
-        console.log('✅ Image uploadée vers Cloudinary:', cloudinaryUrl);
+        console.log('✅ PRODUIT - Image uploadée vers Cloudinary:', cloudinaryUrl);
       } catch (error) {
-        console.log('⚠️ Échec Cloudinary, utilisation locale:', error.message);
+        console.log('❌ PRODUIT - Échec Cloudinary:', error.message);
+        console.log('📁 PRODUIT - Utilisation locale:', localImageUrl);
       }
     }
 
     // Utiliser Cloudinary si disponible, sinon l'ancien système
     const finalImageUrl = cloudinaryUrl || localImageUrl;
+    console.log('🔗 PRODUIT - URL finale utilisée:', finalImageUrl);
 
     return this.productService.create(name, description, price, stock, categoryId, finalImageUrl ?? undefined);
 
