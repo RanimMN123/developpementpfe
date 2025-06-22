@@ -41,9 +41,23 @@ export class CloudinaryService {
           api_secret: 'bxUBrKi3zG5AXV-kRlP0XCAMw1Q',
         });
         console.log('✅ Cloudinary configuré manuellement (temporaire)');
+        console.log('🔧 Configuration appliquée:', {
+          cloud_name: 'dvwoekbmv',
+          api_key: '388133234968652',
+          api_secret: 'bxU***' // Masqué pour sécurité
+        });
         this.isConfigured = true;
+
+        // Test immédiat de la configuration
+        console.log('🧪 Test ping Cloudinary...');
+        cloudinary.api.ping().then(() => {
+          console.log('✅ Ping Cloudinary réussi !');
+        }).catch((pingError) => {
+          console.log('❌ Ping Cloudinary échoué:', pingError.message);
+        });
+
       } catch (error) {
-        console.log('⚠️ Aucune configuration Cloudinary - Mode fallback activé');
+        console.log('❌ Erreur configuration manuelle:', error);
         console.log('📋 Variables env disponibles:', Object.keys(process.env).filter(key => key.toLowerCase().includes('cloud')));
         this.isConfigured = false;
       }
@@ -52,8 +66,12 @@ export class CloudinaryService {
 
   async uploadImage(file: Express.Multer.File, folder: string = 'ranouma'): Promise<string> {
     // Vérifier si Cloudinary est configuré
-    if (!this.isConfigured || !process.env.CLOUDINARY_URL) {
-      console.log('⚠️ Cloudinary non configuré, échec de l\'upload');
+    console.log('🔍 Vérification configuration Cloudinary...');
+    console.log('   - isConfigured:', this.isConfigured);
+    console.log('   - CLOUDINARY_URL exists:', !!process.env.CLOUDINARY_URL);
+
+    if (!this.isConfigured) {
+      console.log('❌ Cloudinary non configuré, échec de l\'upload');
       throw new Error('Cloudinary non configuré');
     }
 
