@@ -6,34 +6,47 @@ export class CloudinaryService {
   private isConfigured: boolean = false;
 
   constructor() {
-    // Configuration explicite de Cloudinary
+    // Essayer d'abord CLOUDINARY_URL, puis les variables séparées
     if (process.env.CLOUDINARY_URL) {
       try {
-        // Configuration explicite avec l'URL
         cloudinary.config({
           cloudinary_url: process.env.CLOUDINARY_URL
         });
-
-        console.log('✅ Cloudinary configuré explicitement');
-        console.log('🔗 URL utilisée:', process.env.CLOUDINARY_URL.substring(0, 30) + '...');
+        console.log('✅ Cloudinary configuré avec CLOUDINARY_URL');
         this.isConfigured = true;
-
-        // Test de la configuration
-        console.log('🧪 Test configuration Cloudinary...');
-        cloudinary.api.ping().then(() => {
-          console.log('✅ Cloudinary ping réussi !');
-        }).catch((error) => {
-          console.log('❌ Cloudinary ping échoué:', error.message);
-        });
-
       } catch (error) {
-        console.error('❌ Erreur configuration Cloudinary:', error);
+        console.error('❌ Erreur avec CLOUDINARY_URL:', error);
+        this.isConfigured = false;
+      }
+    } else if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        cloudinary.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+        console.log('✅ Cloudinary configuré avec variables séparées');
+        console.log('☁️ Cloud name:', process.env.CLOUDINARY_CLOUD_NAME);
+        this.isConfigured = true;
+      } catch (error) {
+        console.error('❌ Erreur avec variables séparées:', error);
         this.isConfigured = false;
       }
     } else {
-      console.log('⚠️ CLOUDINARY_URL non trouvé - Mode fallback activé');
-      console.log('📋 Variables disponibles:', Object.keys(process.env).filter(key => key.includes('CLOUD')));
-      this.isConfigured = false;
+      // Configuration manuelle en dur (temporaire pour test)
+      try {
+        cloudinary.config({
+          cloud_name: 'dvwoekbmv',
+          api_key: '388133234968652',
+          api_secret: 'bxUBrKi3zG5AXV-kRlP0XCAMw1Q',
+        });
+        console.log('✅ Cloudinary configuré manuellement (temporaire)');
+        this.isConfigured = true;
+      } catch (error) {
+        console.log('⚠️ Aucune configuration Cloudinary - Mode fallback activé');
+        console.log('📋 Variables env disponibles:', Object.keys(process.env).filter(key => key.toLowerCase().includes('cloud')));
+        this.isConfigured = false;
+      }
     }
   }
 
