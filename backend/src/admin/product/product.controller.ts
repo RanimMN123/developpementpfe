@@ -7,10 +7,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
+import { CloudinaryService } from '../../cloudinary/cloudinary.service';
 
 @Controller('products')
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}  // Injecte le service
+    constructor(
+      private readonly productService: ProductService,
+      private readonly cloudinaryService: CloudinaryService
+    ) {}  // Injecte les services
    // ======== PRODUITS ========
 
   // Créer un produit
@@ -54,10 +58,25 @@ export class ProductController {
     ) {
       throw new BadRequestException('Les champs doivent être correctement remplis.');
     }
-  
-    const imageUrl = file ? `/public/images/${file.filename}` : null;
-  
-    return this.productService.create(name, description, price, stock, categoryId, imageUrl ?? undefined);
+
+    // Garder l'ancien système ET ajouter Cloudinary
+    const localImageUrl = file ? `/public/images/${file.filename}` : null;
+
+    // Essayer d'uploader vers Cloudinary (sans casser si ça échoue)
+    let cloudinaryUrl = null;
+    if (file) {
+      try {
+        cloudinaryUrl = await this.cloudinaryService.uploadImage(file, 'products');
+        console.log('✅ Image uploadée vers Cloudinary:', cloudinaryUrl);
+      } catch (error) {
+        console.log('⚠️ Échec Cloudinary, utilisation locale:', error.message);
+      }
+    }
+
+    // Utiliser Cloudinary si disponible, sinon l'ancien système
+    const finalImageUrl = cloudinaryUrl || localImageUrl;
+
+    return this.productService.create(name, description, price, stock, categoryId, finalImageUrl ?? undefined);
 
   }
   

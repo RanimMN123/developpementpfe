@@ -18,10 +18,14 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { CategoryService } from './category.service';
 import { SkipCsrf } from '../security/guards/csrf.guard';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('categories')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(
+    private readonly categoryService: CategoryService,
+    private readonly cloudinaryService: CloudinaryService
+  ) {}
 
   // Créer une catégorie avec upload d'image
   @Post()
@@ -47,9 +51,24 @@ export class CategoryController {
   @Body('name', new ValidationPipe({ whitelist: true })) name: string,
   @UploadedFile() file?: Express.Multer.File,
 ) {
-  const imagePath = file ? `public/images/${file.filename}` : undefined;
+  // Garder l'ancien système ET ajouter Cloudinary
+  const localImagePath = file ? `public/images/${file.filename}` : undefined;
 
-  const result = await this.categoryService.createCategory(name, imagePath);
+  // Essayer d'uploader vers Cloudinary (sans casser si ça échoue)
+  let cloudinaryUrl: string | null = null;
+  if (file) {
+    try {
+      cloudinaryUrl = await this.cloudinaryService.uploadImage(file, 'categories');
+      console.log('✅ Image catégorie uploadée vers Cloudinary:', cloudinaryUrl);
+    } catch (error) {
+      console.log('⚠️ Échec Cloudinary pour catégorie, utilisation locale:', error.message);
+    }
+  }
+
+  // Utiliser Cloudinary si disponible, sinon l'ancien système
+  const finalImagePath = cloudinaryUrl || localImagePath;
+
+  const result = await this.categoryService.createCategory(name, finalImagePath);
 
   return {
     message: 'Catégorie créée avec succès',
