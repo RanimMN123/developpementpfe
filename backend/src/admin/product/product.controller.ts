@@ -63,7 +63,7 @@ export class ProductController {
     const localImageUrl = file ? `/public/images/${file.filename}` : null;
 
     // Essayer d'uploader vers Cloudinary (sans casser si ça échoue)
-    let cloudinaryUrl = null;
+    let cloudinaryUrl: string | null = null;
     if (file) {
       try {
         cloudinaryUrl = await this.cloudinaryService.uploadImage(file, 'products');
