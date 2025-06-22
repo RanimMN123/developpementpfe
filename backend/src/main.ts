@@ -86,6 +86,7 @@ async function bootstrap() {
       'http://127.0.0.1:8081',
       'http://localhost:8081',
       'http://localhost:8082',
+      'http://10.16.17.129:8081',
     ];
 
     const isAllowedOrigin = (origin: string) => {
