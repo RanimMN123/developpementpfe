@@ -9,7 +9,7 @@ import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
 import { CloudinaryService } from '../../cloudinary/cloudinary.service';
 
-@Controller('products')
+@Controller('admin/products')
 export class ProductController {
     constructor(
       private readonly productService: ProductService,
@@ -85,14 +85,14 @@ export class ProductController {
  
 
   // Récupérer tous les produits
-  @Get('products')
+  @Get()
   async getProducts() {
     const products = await this.productService.getAllProducts();
     return products;
   }
 
   // Récupérer un produit par son ID
-  @Get('product/:id')
+  @Get(':id')
   async getProductById(@Param('id') id: number) {
     const product = await this.productService.getProductById(id);
     if (!product) {
