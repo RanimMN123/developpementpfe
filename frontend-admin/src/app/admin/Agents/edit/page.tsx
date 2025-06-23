@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Plus,
   Edit,
   Trash2,
   User,
@@ -16,6 +15,9 @@ import {
 } from 'lucide-react';
 import PageLayout, { PrimaryButton, SecondaryButton, LoadingState, ErrorState, EmptyState } from '../../components/PageLayout';
 import SearchAndFilter from '../../components/SearchAndFilter';
+import SuccessNotification from '../../../../components/SuccessNotification';
+import { apiUtils } from '../../../../utils/apiUtils';
+import { formatDate as formatDateUtil } from '../../../../utils/dateUtils';
 import '../../produits/animations.css';
 
 // Interfaces
@@ -338,11 +340,14 @@ export default function EditAgentPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal states
-  const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  // Notification states
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
 
   // Fetch users
   const fetchUsers = async () => {
@@ -350,22 +355,7 @@ export default function EditAgentPage() {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('http://localhost:3000/users', {
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des agents');
-      }
-
-      const data = await response.json();
+      const data = await apiUtils.get('/users');
       setUsers(data);
       setFilteredUsers(data);
     } catch (err) {
@@ -380,19 +370,7 @@ export default function EditAgentPage() {
     fetchUsers();
   }, []);
 
-  // Écouter l'événement pour ouvrir le modal d'ajout d'agent
-  useEffect(() => {
-    const handleOpenAddAgentModal = () => {
-      setSelectedUser(null);
-      setShowModal(true);
-    };
-
-    window.addEventListener('open-add-agent-modal', handleOpenAddAgentModal);
-
-    return () => {
-      window.removeEventListener('open-add-agent-modal', handleOpenAddAgentModal);
-    };
-  }, []);
+  // Écouteur d'événement supprimé car le bouton d'ajout n'existe plus
 
   // Filter users based on search
   useEffect(() => {
@@ -407,58 +385,42 @@ export default function EditAgentPage() {
     }
   }, [searchTerm, users]);
 
-  // Handle save user
+  // Handle save user (modification uniquement)
   const handleSaveUser = async (formData: UserFormData) => {
+    if (!selectedUser) return; // Seulement pour la modification
+
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const url = selectedUser
-        ? `http://localhost:3000/users/${selectedUser.id}`
-        : 'http://localhost:3000/users';
-
-      const method = selectedUser ? 'PUT' : 'POST';
-
-      // Préparer les données à envoyer
+      // Préparer les données à envoyer pour la modification
       const bodyData: Record<string, string> = {};
 
-      // Pour la création, tous les champs sont requis
-      if (!selectedUser) {
+      // N'envoyer que les champs modifiés
+      if (formData.name && formData.name.trim()) {
         bodyData.name = formData.name;
+      }
+      if (formData.email && formData.email.trim()) {
         bodyData.email = formData.email;
+      }
+      if (formData.password && formData.password.trim()) {
         bodyData.password = formData.password;
-      } else {
-        // Pour la modification, n'envoyer que les champs modifiés
-        if (formData.name && formData.name.trim()) {
-          bodyData.name = formData.name;
-        }
-        if (formData.email && formData.email.trim()) {
-          bodyData.email = formData.email;
-        }
-        if (formData.password && formData.password.trim()) {
-          bodyData.password = formData.password;
-        }
       }
 
-      const response = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify(bodyData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la sauvegarde');
-      }
+      await apiUtils.put(`/users/${selectedUser.id}`, bodyData);
 
       await fetchUsers();
       setSelectedUser(null);
+      setError(''); // Effacer les erreurs précédentes
+
+      // Afficher la notification de succès
+      setSuccessMessage({
+        title: '✏️ Modification réussie !',
+        message: `Les informations de l'agent "${formData.name}" ont été mises à jour avec succès.`
+      });
+      setShowSuccessNotification(true);
+
+      // Fermer automatiquement la notification après 4 secondes
+      setTimeout(() => {
+        setShowSuccessNotification(false);
+      }, 4000);
     } catch (err) {
       console.error('Erreur:', err);
       throw err;
@@ -470,45 +432,33 @@ export default function EditAgentPage() {
     if (!userToDelete) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`http://localhost:3000/users/${userToDelete.id}`, {
-        method: 'DELETE',
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la suppression');
-      }
+      await apiUtils.delete(`/users/${userToDelete.id}`);
 
       await fetchUsers();
       setShowDeleteModal(false);
+      const deletedUserName = userToDelete.name || userToDelete.email;
       setUserToDelete(null);
+      setError(''); // Effacer les erreurs précédentes
+
+      // Afficher la notification de succès
+      setSuccessMessage({
+        title: '🗑️ Suppression réussie !',
+        message: `L'agent "${deletedUserName}" a été supprimé définitivement de votre équipe.`
+      });
+      setShowSuccessNotification(true);
+
+      // Fermer automatiquement la notification après 4 secondes
+      setTimeout(() => {
+        setShowSuccessNotification(false);
+      }, 4000);
     } catch (err) {
       console.error('Erreur:', err);
       setError('Erreur lors de la suppression de l\'agent');
     }
   };
 
-  // Format date
-  const formatDate = (dateString: string): string => {
-    try {
-      return new Date(dateString).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return dateString;
-    }
-  };
+  // Utiliser l'utilitaire de date sécurisé
+  const formatDate = formatDateUtil;
 
   // Render table cell (fonction utilitaire pour référence future)
   // const renderCell = (user: User, column: { key: string }) => {
@@ -580,17 +530,6 @@ export default function EditAgentPage() {
       description="Gérez les comptes agents du système"
       onRefresh={fetchUsers}
       isLoading={isLoading}
-      actions={
-        <PrimaryButton
-          onClick={() => {
-            setSelectedUser(null);
-            setShowModal(true);
-          }}
-          icon={<Plus size={18} />}
-        >
-          Ajouter un agent
-        </PrimaryButton>
-      }
     >
       {error && (
         <ErrorState
@@ -616,19 +555,7 @@ export default function EditAgentPage() {
               : 'Vous n\'avez pas encore d\'agents.'
           }
           icon={<UsersIcon size={48} className="mx-auto text-gray-400" />}
-          action={
-            !searchTerm && (
-              <PrimaryButton
-                onClick={() => {
-                  setSelectedUser(null);
-                  setShowModal(true);
-                }}
-                icon={<Plus size={16} />}
-              >
-                Ajouter votre premier agent
-              </PrimaryButton>
-            )
-          }
+          action={null}
         />
       ) : (
         <div className="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden transform transition-all duration-500 hover:shadow-xl hover:border-blue-200">
@@ -759,16 +686,6 @@ export default function EditAgentPage() {
       )}
 
       {/* Modals */}
-      <UserModal
-        open={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setSelectedUser(null);
-        }}
-        onSave={handleSaveUser}
-        user={selectedUser}
-        editMode={false}
-      />
 
       <UserModal
         open={showEditModal}
@@ -789,6 +706,14 @@ export default function EditAgentPage() {
         }}
         onConfirm={handleDeleteUser}
         userEmail={userToDelete?.email || ''}
+      />
+
+      {/* Notification de succès */}
+      <SuccessNotification
+        isOpen={showSuccessNotification}
+        onClose={() => setShowSuccessNotification(false)}
+        title={successMessage.title}
+        message={successMessage.message}
       />
     </PageLayout>
   );

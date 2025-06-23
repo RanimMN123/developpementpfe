@@ -17,6 +17,6 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "types": ["node"]  // 👈 Ajouté pour supporter `process` et autres API Node.js
+    "types": ["node", "jest"]
   }
 }

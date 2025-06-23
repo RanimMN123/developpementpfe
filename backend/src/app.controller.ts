@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { CategoryService } from './category/category.service';
 import { ProductService } from './admin/product/product.service'; // ✅ Ajout du ProductService
@@ -59,7 +59,7 @@ export class AppController {
 
   // ✅ Endpoint spécifique pour Articles avec images correctes
   @Get('articles/categories-with-products')
-  async getCategoriesWithProducts() {
+  async getCategoriesWithProducts(@Req() request: any) {
     try {
       // Récupérer toutes les catégories
       const categories = await this.categoryService.getCategories();
@@ -67,35 +67,75 @@ export class AppController {
       // Récupérer tous les produits avec leurs images
       const products = await this.productService.getAllProducts();
 
-      // Transformer les données pour le mobile
+      // Construire l'URL de base à partir de la requête (avec IP fixe pour mobile)
+      const protocol = request.protocol || 'http';
+      const requestHost = request.get('host');
+
+      // Forcer l'IP correcte pour les requêtes mobiles
+      let host = requestHost || 'localhost:3000';
+
+      // Si la requête vient du mobile (détection par User-Agent ou autre), utiliser l'IP fixe
+      const userAgent = request.get('user-agent') || '';
+      const isMobileRequest = userAgent.includes('Expo') || userAgent.includes('ReactNative') ||
+                             requestHost?.includes('192.168') || requestHost?.includes('10.0') ||
+                             requestHost?.includes('172.16');
+
+      if (isMobileRequest) {
+        host = '192.168.100.187:3000'; // IP fixe pour mobile
+        console.log('📱 Requête mobile détectée, utilisation IP fixe:', host);
+      }
+
+      const baseUrl = `${protocol}://${host}`;
+
+      console.log('🌐 Base URL construite:', baseUrl);
+
+      // Transformer les données pour le mobile avec URLs complètes
       const categoriesWithImages = categories.map(category => {
         // Trouver les produits de cette catégorie
         const categoryProducts = products.filter(product => product.categoryId === category.id);
 
-        // Utiliser l'image de la catégorie ou la première image de produit trouvée
-        let categoryImage = category.image;
-        if (!categoryImage && categoryProducts.length > 0) {
+        // Construire l'URL complète de l'image de catégorie
+        let categoryImageUrl: string | null = null;
+        if (category.image) {
+          // Si l'image commence par 'public/', ajouter le slash
+          const imagePath = category.image.startsWith('public/') ? `/${category.image}` : category.image;
+          categoryImageUrl = `${baseUrl}${imagePath}`;
+        } else if (categoryProducts.length > 0) {
+          // Utiliser la première image de produit trouvée
           const productWithImage = categoryProducts.find(p => p.imageUrl);
-          if (productWithImage) {
-            // Convertir l'URL complète en chemin relatif pour buildImageUrl
-            categoryImage = productWithImage.imageUrl?.replace('http://localhost:3000/', '') || null;
+          if (productWithImage && productWithImage.imageUrl) {
+            if (productWithImage.imageUrl.startsWith('http')) {
+              categoryImageUrl = productWithImage.imageUrl;
+            } else {
+              categoryImageUrl = `${baseUrl}${productWithImage.imageUrl}`;
+            }
           }
         }
 
         return {
           id: category.id,
           name: category.name,
-          image: categoryImage,
+          imageUrl: categoryImageUrl, // URL complète
           productsCount: categoryProducts.length
         };
       });
 
-      // Transformer les produits pour avoir le bon format d'image
-      const transformedProducts = products.map(product => ({
-        ...product,
-        // Convertir imageUrl en image pour compatibilité mobile
-        image: product.imageUrl ? product.imageUrl.replace('http://localhost:3000/', '') : null
-      }));
+      // Transformer les produits avec URLs complètes
+      const transformedProducts = products.map(product => {
+        let productImageUrl: string | null = null;
+        if (product.imageUrl) {
+          if (product.imageUrl.startsWith('http')) {
+            productImageUrl = product.imageUrl;
+          } else {
+            productImageUrl = `${baseUrl}${product.imageUrl}`;
+          }
+        }
+
+        return {
+          ...product,
+          imageUrl: productImageUrl // URL complète
+        };
+      });
 
       return {
         message: 'Catégories et produits récupérés avec succès',

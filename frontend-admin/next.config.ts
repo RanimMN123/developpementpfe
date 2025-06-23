@@ -22,9 +22,6 @@ const nextConfig: NextConfig = {
   publicRuntimeConfig: {
     // Variables accessibles côté client et serveur
   },
-
-  // Désactiver la télémétrie
-  telemetry: false,
 };
 
 export default nextConfig;

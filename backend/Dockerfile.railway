@@ -1,0 +1,69 @@
+# Dockerfile optimisé pour Railway - Backend NestJS
+FROM node:18-alpine AS builder
+
+# Installer les dépendances système avec retry
+RUN apk update && \
+    apk add --no-cache python3 make g++ || \
+    (sleep 5 && apk add --no-cache python3 make g++)
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Installer les dépendances (inclure les dev dependencies pour le build)
+RUN npm ci && npm cache clean --force
+
+# Copier le code source
+COPY . .
+
+# Générer le client Prisma
+RUN npx prisma generate
+
+# Construire l'application
+RUN npm run build
+
+# Stage de production
+FROM node:18-alpine AS production
+
+# Installer dumb-init
+RUN apk add --no-cache dumb-init
+
+# Créer un utilisateur non-root
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
+
+WORKDIR /app
+
+# Copier les fichiers depuis le builder
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+
+# Installer seulement les dépendances de production
+RUN npm ci --only=production && npm cache clean --force
+
+# Créer le dossier pour les uploads
+RUN mkdir -p /app/public/images && chown -R nestjs:nodejs /app/public
+
+# Variables d'environnement
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Exposer le port (Railway utilise la variable PORT)
+EXPOSE 3000
+
+# Changer vers l'utilisateur non-root
+USER nestjs
+
+# Script de démarrage avec migration
+COPY --chown=nestjs:nodejs start.sh ./
+RUN chmod +x start.sh
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Commande de démarrage
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["./start.sh"]

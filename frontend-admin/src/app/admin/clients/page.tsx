@@ -17,6 +17,7 @@ import PageLayout, { PrimaryButton, SecondaryButton, LoadingState, ErrorState, E
 import SearchAndFilter from '../components/SearchAndFilter';
 import SuccessNotification from '../../../components/SuccessNotification';
 import ScrollToTop from '../components/ScrollToTop';
+import { buildApiUrl, getAuthHeaders, API_ENDPOINTS } from '../../../config/api';
 import './clients.css';
 
 // Interfaces
@@ -134,9 +135,8 @@ const ClientModal: React.FC<{
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="flex-1 cursor-pointer" onClick={onClose}></div>
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-start justify-end z-50 pt-4 pr-4">
+      <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center justify-between">
@@ -278,7 +278,6 @@ const ClientModal: React.FC<{
           </PrimaryButton>
         </div>
       </div>
-      <div className="flex-1 cursor-pointer" onClick={onClose}></div>
     </div>
   );
 };
@@ -293,9 +292,9 @@ const DeleteConfirmModal: React.FC<{
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="flex-1 cursor-pointer" onClick={onClose}></div>
-      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -356,15 +355,8 @@ export default function ClientsPage() {
       setIsLoading(true);
       setError('');
 
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('http://localhost:3000/api/clients', {
-        headers,
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.ADMIN.CLIENTS), {
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -384,15 +376,8 @@ export default function ClientsPage() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('http://localhost:3000/users', {
-        headers,
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.USERS), {
+        headers: getAuthHeaders(),
       });
 
       if (response.ok) {
@@ -446,24 +431,15 @@ export default function ClientsPage() {
   // Handle save client
   const handleSaveClient = async (formData: ClientFormData) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       const url = selectedClient
-        ? `http://localhost:3000/api/clients/${selectedClient.id}`
-        : 'http://localhost:3000/api/clients';
+        ? buildApiUrl(`${API_ENDPOINTS.CLIENTS}/${selectedClient.id}`)
+        : buildApiUrl(API_ENDPOINTS.ADMIN.CLIENTS);
 
       const method = selectedClient ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers,
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
 
@@ -491,16 +467,9 @@ export default function ClientsPage() {
     if (!clientToDelete) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`http://localhost:3000/api/clients/${clientToDelete.id}`, {
+      const response = await fetch(buildApiUrl(`${API_ENDPOINTS.CLIENTS}/${clientToDelete.id}`), {
         method: 'DELETE',
-        headers,
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {

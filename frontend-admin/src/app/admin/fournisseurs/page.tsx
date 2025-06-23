@@ -125,9 +125,8 @@ const FournisseurModal: React.FC<{
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="flex-1 cursor-pointer" onClick={onClose}></div>
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-start justify-end z-50 pt-4 pr-4">
+      <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-teal-600 p-6 text-white">
           <div className="flex items-center justify-between">
@@ -258,7 +257,6 @@ const FournisseurModal: React.FC<{
           </PrimaryButton>
         </div>
       </div>
-      <div className="flex-1 cursor-pointer" onClick={onClose}></div>
     </div>
   );
 };
@@ -273,9 +271,9 @@ const DeleteConfirmModal: React.FC<{
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="flex-1 cursor-pointer" onClick={onClose}></div>
-      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -342,7 +340,7 @@ export default function FournisseursPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:3000/api/fournisseurs', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs`, {
         headers,
       });
 
@@ -409,8 +407,8 @@ export default function FournisseursPage() {
       }
 
       const url = selectedFournisseur
-        ? `http://localhost:3000/api/fournisseurs/${selectedFournisseur.id}`
-        : 'http://localhost:3000/api/fournisseurs';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs/${selectedFournisseur.id}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs`;
 
       const method = selectedFournisseur ? 'PATCH' : 'POST';
 
@@ -453,7 +451,7 @@ export default function FournisseursPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`http://localhost:3000/api/fournisseurs/${fournisseurToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/fournisseurs/${fournisseurToDelete.id}`, {
         method: 'DELETE',
         headers,
       });

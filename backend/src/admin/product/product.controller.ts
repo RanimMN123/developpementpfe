@@ -7,10 +7,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
+import { CloudinaryService } from '../../cloudinary/cloudinary.service';
 
-@Controller('products')
+@Controller('admin/products')
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}  // Injecte le service
+    constructor(
+      private readonly productService: ProductService,
+      private readonly cloudinaryService: CloudinaryService
+    ) {}  // Injecte les services
    // ======== PRODUITS ========
 
   // Créer un produit
@@ -54,24 +58,41 @@ export class ProductController {
     ) {
       throw new BadRequestException('Les champs doivent être correctement remplis.');
     }
-  
-    const imageUrl = file ? `http://localhost:3000/public/images/${file.filename}` : null;
-  
-    return this.productService.create(name, description, price, stock, categoryId, imageUrl ?? undefined);
+
+    // Garder l'ancien système ET ajouter Cloudinary
+    const localImageUrl = file ? `/public/images/${file.filename}` : null;
+
+    // Essayer d'uploader vers Cloudinary
+    let cloudinaryUrl: string | null = null;
+    if (file) {
+      try {
+        cloudinaryUrl = await this.cloudinaryService.uploadImage(file, 'products');
+        console.log('✅ PRODUIT - Image uploadée vers Cloudinary:', cloudinaryUrl);
+      } catch (error) {
+        console.log('❌ PRODUIT - Échec Cloudinary:', error.message);
+        console.log('📁 PRODUIT - Utilisation locale:', localImageUrl);
+      }
+    }
+
+    // Utiliser Cloudinary si disponible, sinon l'ancien système
+    const finalImageUrl = cloudinaryUrl || localImageUrl;
+    console.log('🔗 PRODUIT - URL finale utilisée:', finalImageUrl);
+
+    return this.productService.create(name, description, price, stock, categoryId, finalImageUrl ?? undefined);
 
   }
   
  
 
   // Récupérer tous les produits
-  @Get('products')
+  @Get()
   async getProducts() {
     const products = await this.productService.getAllProducts();
     return products;
   }
 
   // Récupérer un produit par son ID
-  @Get('product/:id')
+  @Get(':id')
   async getProductById(@Param('id') id: number) {
     const product = await this.productService.getProductById(id);
     if (!product) {
@@ -126,7 +147,7 @@ export class ProductController {
     const stock = body.stock ? Number(body.stock) : undefined;
     const categoryId = body.categoryId ? Number(body.categoryId) : undefined;
   
-    const imageUrl = file ? `http://localhost:3000/public/images/${file.filename}` : undefined;
+    const imageUrl = file ? `/public/images/${file.filename}` : undefined;
   
     const updateData: any = {
       ...(name && { name }),

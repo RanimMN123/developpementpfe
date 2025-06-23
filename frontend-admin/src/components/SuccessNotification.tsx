@@ -33,13 +33,13 @@ const SuccessNotification: React.FC<SuccessNotificationProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-30 transition-opacity duration-300"></div>
+    <div className="fixed inset-0 z-50 pointer-events-none">
+      {/* Overlay transparent */}
+      <div className="fixed inset-0 bg-transparent backdrop-blur-md transition-opacity duration-300 pointer-events-auto" onClick={onClose}></div>
 
-      {/* Notification */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-md transform rounded-2xl bg-white shadow-2xl transition-all duration-300 animate-bounce-in">
+      {/* Notification positionnée en haut */}
+      <div className="flex justify-center pt-8 px-4 pointer-events-none">
+        <div className="relative w-full max-w-md transform rounded-2xl bg-white shadow-2xl transition-all duration-300 animate-slide-down pointer-events-auto">
           {/* Close button */}
           <button
             onClick={onClose}

@@ -1,0 +1,56 @@
+# Dockerfile de debug pour diagnostiquer le problème
+FROM node:18-alpine
+
+# Installer les dépendances système nécessaires
+RUN apk add --no-cache openssl
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances en premier (pour le cache Docker)
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Debug: Vérifier les fichiers copiés
+RUN echo "=== FICHIERS COPIÉS ===" && ls -la
+
+# Installer TOUTES les dépendances (nécessaire pour le build)
+RUN npm ci
+
+# Debug: Vérifier node_modules
+RUN echo "=== NODE_MODULES ===" && ls -la node_modules/.bin/ | head -10
+
+# Copier le code source
+COPY . .
+
+# Debug: Vérifier le code source
+RUN echo "=== CODE SOURCE ===" && ls -la && echo "=== SRC ===" && ls -la src/
+
+# Générer le client Prisma
+RUN npx prisma generate
+
+# Debug: Vérifier Prisma
+RUN echo "=== PRISMA GÉNÉRÉ ===" && ls -la node_modules/.prisma/ 2>/dev/null || echo "Pas de .prisma"
+
+# Construire l'application avec debug
+RUN echo "=== DÉBUT BUILD ===" && npm run build && echo "=== FIN BUILD ==="
+
+# Debug: Vérifier que le build a fonctionné
+RUN echo "=== CONTENU DIST ===" && ls -la dist/ && echo "=== FICHIERS DIST ===" && find dist/ -name "*.js" | head -10
+
+# Vérifier que main.js existe
+RUN test -f dist/src/main.js && echo "✅ main.js trouvé" || (echo "❌ main.js manquant" && ls -la dist/)
+
+# Créer les dossiers nécessaires
+RUN mkdir -p /app/public/images
+
+# Exposer le port
+EXPOSE 3000
+
+# Variables d'environnement par défaut
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV DATABASE_URL="postgresql://postgres:password@postgres:5432/admin_db?schema=public"
+
+# Commande de démarrage - utiliser node directement
+CMD ["node", "dist/src/main.js"]
