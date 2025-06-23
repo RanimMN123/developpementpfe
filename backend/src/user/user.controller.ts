@@ -14,6 +14,7 @@ import {
   ValidationPipe,
   HttpCode,
   HttpStatus,
+  Header,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './create-user.dto';
@@ -34,12 +35,18 @@ export class UserController {
 
   @Get(':id/revenue')
   @SkipCsrf() // Skip CSRF pour les revenus utilisateur
+  @Header('Cache-Control', 'no-cache, no-store, must-revalidate')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async getUserRevenue(@Param('id', ParseIntPipe) id: number) {
     return this.userService.getUserRevenue(id);
   }
 
   @Get(':id/orders')
   @SkipCsrf() // Skip CSRF pour les commandes utilisateur
+  @Header('Cache-Control', 'no-cache, no-store, must-revalidate')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async getOrdersByUser(@Param('id', ParseIntPipe) userId: number) {
     return this.userService.getOrdersByUser(userId);
   }
