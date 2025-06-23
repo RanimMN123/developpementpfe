@@ -88,14 +88,7 @@ export class AdminController {
   }
 
   // ======== PRODUITS ========
-
-  // Créer un produit
-  @Post('products')
-  async createProduct(@Body() createProductDto: CreateProductDto) {
-    const { name, description, price, stock, categoryId } = createProductDto;
-    const result = await this.adminService.createProduct(name, description, price, stock, categoryId);
-    return result;
-  }
+  // Endpoint déplacé vers ProductController pour éviter les conflits
 
   // Récupérer tous les produits (avec URLs d'images corrigées pour mobile)
   @Get('products')
